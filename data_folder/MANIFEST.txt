@@ -1,9 +1,9 @@
-Job Title: JSSData
-Job ID: 2016.4.9.Z9pxjqpT
+Job Title: JASARealData
+Job ID: 2016.4.9.dv2Dc4z7
 Requester: sbronder
-Query: http://dfr.jstor.org/fsearch/submitrequest?cs=any%3AJournal+of+Statistical+Software&view=text&
+Query: http://dfr.jstor.org/fsearch/submitrequest?cs=jcode%3Ajamerstatasso%5E1.0%7Cany%3AJournal+of+Statistical+Software%7Cla%3Aeng%5E1.0&fs=asm1%3Alam1%3Asnm1&view=text&cc=any%3AJournal+of+Statistical+Software
 View(s): citations|wordcounts
 Format: CSV
 Documents Requested: 1000
-Date Processed: 2016-04-09 10:57:02.250603
+Date Processed: 2016-04-09 16:50:02.577409
 
