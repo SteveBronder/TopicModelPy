@@ -1,0 +1,9 @@
+Job Title: JSSData
+Job ID: 2016.4.9.Z9pxjqpT
+Requester: sbronder
+Query: http://dfr.jstor.org/fsearch/submitrequest?cs=any%3AJournal+of+Statistical+Software&view=text&
+View(s): citations|wordcounts
+Format: CSV
+Documents Requested: 1000
+Date Processed: 2016-04-09 10:57:02.250603
+
