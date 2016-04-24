@@ -1,0 +1,5 @@
+<<<<<<< HEAD
+Hello, Tony
+=======
+Hello, world!
+>>>>>>> 96f292e8ac034c71d9ae85cf361faf63e56db0c9
