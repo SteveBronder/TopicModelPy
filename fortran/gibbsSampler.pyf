@@ -1,0 +1,40 @@
+!    -*- f90 -*-
+! Note: the context of this file is case sensitive.
+
+python module gibbsSampler1 ! in 
+    interface  ! in :gibbsSampler1
+        module cool_guy_22 ! in :gibbsSampler1:gibbsSampler.f95
+            subroutine gibbssampler(matrix,nwz,nzm,nz,nm,z,ntopics,max_iter,m,n,logpw_z) ! in :gibbsSampler1:gibbsSampler.f95:cool_guy_22
+                integer dimension(n,m) :: matrix
+                real*8 dimension(m,ntopics),depend(m) :: nwz
+                real*8 dimension(ntopics,m),depend(ntopics,m) :: nzm
+                real*8 dimension(n),depend(n) :: nz
+                real*8 dimension(m),depend(m) :: nm
+                integer dimension(m,n),depend(m,n) :: z
+                integer, optional,check(shape(nwz,1)==ntopics),depend(nwz) :: ntopics=shape(nwz,1)
+                integer, optional,check(len(logpw_z)>=max_iter),depend(logpw_z) :: max_iter=len(logpw_z)
+                integer, optional,check(shape(matrix,1)==m),depend(matrix) :: m=shape(matrix,1)
+                integer, optional,check(shape(matrix,0)==n),depend(matrix) :: n=shape(matrix,0)
+                real*8 dimension(max_iter) :: logpw_z
+            end subroutine gibbssampler
+            subroutine loglikelihood(nwz,nzm,alpha,beta,ntopics,n,m,lik) ! in :gibbsSampler1:gibbsSampler.f95:cool_guy_22
+                real*8 dimension(m,ntopics) :: nwz
+                real*8 dimension(ntopics,m),depend(ntopics,m) :: nzm
+                real*8 :: alpha
+                real*8 :: beta
+                integer, optional,check(shape(nwz,1)==ntopics),depend(nwz) :: ntopics=shape(nwz,1)
+                integer :: n
+                integer, optional,check(shape(nwz,0)==m),depend(nwz) :: m=shape(nwz,0)
+                real*8 :: lik
+            end subroutine loglikelihood
+            subroutine log_multinomial_beta(alpha,k,lik) ! in :gibbsSampler1:gibbsSampler.f95:cool_guy_22
+                real*8 dimension(:) :: alpha
+                integer :: k
+                real*8 :: lik
+            end subroutine log_multinomial_beta
+        end module cool_guy_22
+    end interface 
+end python module gibbsSampler1
+
+! This file was auto-generated with f2py (version:2).
+! See http://cens.ioc.ee/projects/f2py2e/
