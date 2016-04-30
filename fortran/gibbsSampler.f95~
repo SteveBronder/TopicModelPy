@@ -1,9 +1,9 @@
 ! gibbsSampler.f95
-MODULE cool_guy_22
+MODULE gibbs_sampler
 
 CONTAINS
       subroutine gibbsSampler(matrix,NWZ,NZM,NZ,NM,Z,ntopics, &
-     mmax_iter,M,N,logPw_z)
+     max_iter,M,N,logPw_z)
         IMPLICIT NONE
         integer :: M, N,i,k
         integer max_iter
@@ -90,5 +90,5 @@ CONTAINS
 ! End multinomial beta
 
 
-END MODULE cool_guy_22
+END MODULE gibbs_sampler
 

@@ -1,5 +1,5 @@
 ! gibbsSampler.f95
-MODULE cool_guy_22
+MODULE gibbs_sampler
 
 CONTAINS
       subroutine gibbsSampler(matrix,NWZ,NZM,NZ,NM,Z,ntopics, &
@@ -79,16 +79,16 @@ CONTAINS
         real*8, dimension(:) :: alpha
         real*8 lik
         integer K
-! 
-!        if (K == 0) then
-!           lik = lik + sum(dlgama(alpha)) - dlgama(sum(alpha))
-!        else
+ 
+        if (K == 0) then
+           lik = lik + sum(dlgama(alpha)) - dlgama(sum(alpha))
+        else
 ! in the original code it was -=, but K!=0 only when we subtract
-!           lik = lik - (K * sum(dlgama(alpha)) - dlgama(K * sum(alpha)))
-!        endif
+           lik = lik - (K * sum(dlgama(alpha)) - dlgama(K * sum(alpha)))
+        endif
       end
 ! End multinomial beta
 
 
-END MODULE cool_guy_22
+END MODULE gibbs_sampler
 
