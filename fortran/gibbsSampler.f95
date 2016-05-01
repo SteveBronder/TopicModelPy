@@ -3,9 +3,9 @@ MODULE gibbs_sampler
 
 CONTAINS
       subroutine gibbsSampler(matrix,NWZ,NZM,NZ,NM,Z,ntopics, &
-     max_iter,M,N,logPw_z)
+     max_iter,M,N)
         IMPLICIT NONE
-        integer :: M, N,i,k
+        integer :: M, N,i,k,j,ll
         integer max_iter
         integer Z(M,N)
         integer matrix(N,M)
@@ -15,30 +15,29 @@ CONTAINS
         real*8 NM(M)
         real*8 NZM(ntopics,M)
         real*8 NWZ(M,ntopics)
-        real*8 logPw_z(max_iter)
         EXTERNAL genmul
 ! Everything but comments must be between columns 6 and 76
       do i=1,max_iter
-        do m=1,M
+        do j=1,M
 ! FIXME: This N should probably be document vocabulary not actual words,
 !  but the non-zero entries of the doc m
-          do n=1,N
-            NZM(Z(m,n),m) = NZM(Z(m,n),m) - 1
-            NM(m) = NM(m) - 1
-            NWZ(matrix(m,n),Z(m,n)) = NWZ(matrix(m,n),Z(m,n)) - 1
-            NZ(Z(m,n)) = NZ(Z(m,n)) - 1
+          do ll=1,N
+            NZM(Z(j,ll),j) = NZM(Z(j,ll),j) - 1
+            NM(j) = NM(j) - 1
+            NWZ(matrix(j,ll),Z(j,ll)) = NWZ(matrix(j,ll),Z(j,ll)) - 1
+            NZ(Z(j,ll)) = NZ(Z(j,ll)) - 1
 
             do k=1,ntopics
-              p(k) = NWZ(matrix(m,n),k)/NZ(k) * NZM(k,m)
+              p(k) = NWZ(matrix(j,ll),k)/NZ(k) * NZM(k,j)
             enddo
 
             p = p/sum(p)
-            call genmul(1,p,ntopics,Z(m,n))
+            call genmul(1,p,ntopics,Z(j,ll))
 
-            NZM(Z(m,n),m) = NZM(Z(m,n),m) + 1
-            NM(m) = NM(m) + 1
-            NWZ(matrix(m,n),Z(m,n)) = NWZ(matrix(m,n),Z(m,n)) + 1
-            NZ(Z(m,n)) = NZ(Z(m,n)) + 1
+            NZM(Z(j,ll),j) = NZM(Z(j,ll),j) + 1
+            NM(j) = NM(j) + 1
+            NWZ(matrix(j,ll),Z(j,ll)) = NWZ(matrix(j,ll),Z(j,ll)) + 1
+            NZ(Z(j,ll)) = NZ(Z(j,ll)) + 1
           enddo
         enddo
       enddo
