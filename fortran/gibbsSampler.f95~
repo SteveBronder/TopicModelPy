@@ -2,43 +2,52 @@
 MODULE gibbs_sampler
 
 CONTAINS
-      subroutine gibbsSampler(matrix,NWZ,NZM,NZ,NM,Z,ntopics, &
-     max_iter,M,N,logPw_z)
+      subroutine gibbsSampler(matrix,NZW,NZM,NZ,NM,ntopics, &
+     max_iter,M,N,p_z)
         IMPLICIT NONE
-        integer :: M, N,i,k,j,ll
+! Everything is transpose in fortran (??) so rows and columns get switched
+        integer :: M, N,i,j,ll,nn,ntapp
         integer max_iter
-        integer Z(M,N)
-        integer matrix(N,M)
+        integer Z
+        integer matrix(M,N)
         integer ntopics
-        real*8 p(ntopics)
-        real*8 NZ(N)
-        real*8 NM(M)
-        real*8 NZM(ntopics,M)
-        real*8 NWZ(M,ntopics)
-        real*8 logPw_z(max_iter)
+        real*4 p_z(ntopics)
+        integer NZ(ntopics)
+        integer NM(M)
+        integer NZM(ntopics,M)
+        integer NZW(N,ntopics)
+        real*8 :: alpha, beta
         EXTERNAL genmul
-! Everything but comments must be between columns 6 and 76
+      ntapp = ntopics-1
       do i=1,max_iter
         do j=1,M
-! FIXME: This N should probably be document vocabulary not actual words,
-!  but the non-zero entries of the doc m
+! FIXME: ll is like w in the enumerate
+!   (i.e. if first nonzero is at place 27, rep 27 (ll) 4 times (ll)
           do ll=1,N
-            NZM(Z(j,ll),j) = NZM(Z(j,ll),j) - 1
-            NM(j) = NM(j) - 1
-            NWZ(matrix(j,ll),Z(j,ll)) = NWZ(matrix(j,ll),Z(j,ll)) - 1
-            NZ(Z(j,ll)) = NZ(Z(j,ll)) - 1
+            if (matrix(j,ll) == 0) then
+              cycle
+            endif
+            ! nn is like i in the enumerate
+            do nn=1,matrix(j,ll)
+              write(*,*) p_z(1:ntapp) 
+              call genmul(1,p_z(1:ntapp),ntopics,Z)
+              write(*,*) ll
+              write(*,*) nn
+              write(*,*) NZM(j,Z)
+              NZM(j,Z) = NZM(j,Z) - 1
+              NM(j) = NM(j) - 1
+              NZW(matrix(j,ll),Z) = NZW(matrix(j,ll),Z) - 1
+              NZ(Z) = NZ(Z) - 1
 
-            do k=1,ntopics
-              p(k) = NWZ(matrix(j,ll),k)/NZ(k) * NZM(k,j)
-            enddo
+              write(*,*) p_z(1:ntapp)
+              call  conditional_distribution(NZW, NZM, NZ, NM, beta, alpha,ntopics,M,N,p_z,j,ll)
+              call genmul(1,abs(p_z(1:ntapp)),ntopics,Z)
 
-            p = p/sum(p)
-            call genmul(1,p,ntopics,Z(j,ll))
-
-            NZM(Z(j,ll),j) = NZM(Z(j,ll),j) + 1
-            NM(j) = NM(j) + 1
-            NWZ(matrix(j,ll),Z(j,ll)) = NWZ(matrix(j,ll),Z(j,ll)) + 1
-            NZ(Z(j,ll)) = NZ(Z(j,ll)) + 1
+              NZM(j,Z) = NZM(j,Z) + 1
+              NM(j) = NM(j) + 1
+              NZW(Z,matrix(j,ll)) = NZW(Z,matrix(ll,z)) + 1
+              NZ(Z) = NZ(Z) + 1
+            enddo  
           enddo
         enddo
       enddo
@@ -50,10 +59,10 @@ CONTAINS
 
 ! loglikelihood !/! FIXME: N here needs to be vocab
 
-      subroutine loglikelihood(NWZ, NZM, alpha, beta, ntopics,N,M,lik)
+      subroutine loglikelihood(NZW, NZM, alpha, beta, ntopics,N,M,lik)
         IMPLICIT NONE
         real*8 NZM(ntopics,M)
-        real*8 NWZ(M,ntopics)
+        real*8 NZW(M,ntopics)
         real*8  :: alpha, beta
         integer :: N, M, z, mm, ntopics
         real*8 lik
@@ -61,7 +70,7 @@ CONTAINS
         lik = 0d0
 
         do z = 1,ntopics
-              call log_multinomial_beta(NWZ(z,:) + beta,0,lik)
+              call log_multinomial_beta(NZW(z,:) + beta,0,lik)
               call log_multinomial_beta((/beta/),N,lik)
         enddo
 
@@ -89,6 +98,27 @@ CONTAINS
       end
 ! End multinomial beta
 
+! Conditional Distribution
 
+      subroutine conditional_distribution(NZW, NZM, NZ, NM, beta, alpha,ntopics,M,N,p_z,j,ll)
+      IMPLICIT NONE
+        integer :: j,ll, M, N
+        integer ntopics
+        real*4 p_z(ntopics)
+        real*8 beta
+        real*8 alpha
+        integer NZ(ntopics)
+        integer NM(M)
+        integer NZM(ntopics,M)
+        integer NZW(N,ntopics)
+        real*8 left(ntopics)
+        real*8 right(ntopics)
+
+        left = (NZW(ll,:) + beta) / (NZ + beta * N)
+        right = (NZM(:,j) + alpha) / (NM(j) + alpha * ntopics)
+        p_z = abs(left * right)
+        p_z = p_z / sum(p_z)
+      end
+! End Conditional Distribution
 END MODULE gibbs_sampler
 

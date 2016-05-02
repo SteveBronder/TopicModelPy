@@ -1,40 +1,53 @@
 !    -*- f90 -*-
 ! Note: the context of this file is case sensitive.
 
-python module gibbsSampler1 ! in 
-    interface  ! in :gibbsSampler1
-        module gibbs_sampler ! in :gibbsSampler1:gibbsSampler.f95
-            subroutine gibbssampler(matrix,nwz,nzm,nz,nm,z,ntopics,max_iter,m,n,logpw_z) ! in :gibbsSampler1:gibbsSampler.f95:gibbs_sampler
-                integer dimension(n,m),intent(in) :: matrix
-                real*8 dimension(m,ntopics),intent(inout),depend(m) :: nwz
+python module gibbsSampler ! in 
+    interface  ! in :gibbsSampler
+        module gibbs_sampler ! in :gibbsSampler:gibbsSampler.f95
+            subroutine gibbssampler(matrix,nzw,nzm,nz,nm,ntopics,max_iter,m,n,p_z) ! in :gibbsSampler:gibbsSampler.f95:gibbs_sampler
+                integer dimension(m,n),intent(in) :: matrix
+                real*8 dimension(n,ntopics),intent(inout),depend(n) :: nzw
                 real*8 dimension(ntopics,m),intent(inout),depend(ntopics,m) :: nzm
-                real*8 dimension(n),intent(inout),depend(n) :: nz
+                real*8 dimension(ntopics),intent(inout),depend(ntopics) :: nz
                 real*8 dimension(m),intent(inout),depend(m) :: nm
-                integer dimension(m,n),intent(inout),depend(m,n) :: z
-                integer,check(shape(nwz,1)==ntopics),intent(in),depend(nwz) :: ntopics=shape(nwz,1)
-                integer, optional,check(len(logpw_z)>=max_iter),intent(in),depend(logpw_z) :: max_iter=len(logpw_z)
-                integer, optional,check(shape(matrix,1)==m),intent(inout),depend(matrix) :: m=shape(matrix,1)
-                integer, optional,check(shape(matrix,0)==n),intent(inout),depend(matrix) :: n=shape(matrix,0)
-                real*8 dimension(max_iter),intent(inout) :: logpw_z
+                integer, optional,check(shape(nzw,1)==ntopics),intent(in),depend(nzw) :: ntopics=shape(nzw,1)
+                integer,intent(in) :: max_iter
+                integer, optional,check(shape(matrix,0)==m),intent(in),depend(matrix) :: m=shape(matrix,0)
+                integer, optional,check(shape(matrix,1)==n),intent(in),depend(matrix) :: n=shape(matrix,1)
+                real*8 dimension(ntopics),intent(inout),depend(ntopics) :: p_z
             end subroutine gibbssampler
-            subroutine loglikelihood(nwz,nzm,alpha,beta,ntopics,n,m,lik) ! in :gibbsSampler1:gibbsSampler.f95:gibbs_sampler
-                real*8 dimension(m,ntopics),intent(inout) :: nwz
-                real*8 dimension(ntopics,m),intent(inout),depend(ntopics,m) :: nzm
-                real*8,intent(in) :: alpha
-                real*8,intent(in) :: beta
-                integer, check(shape(nwz,1)==ntopics),intent(in),depend(nwz) :: ntopics=shape(nwz,1)
-                integer,intent(inout) :: n
-                integer, check(shape(nwz,0)==m),intent(inout),depend(nwz) :: m=shape(nwz,0)
-                real*8,intent(inout) :: lik
+            subroutine loglikelihood(nzw,nzm,alpha,beta,ntopics,n,m,lik) ! in :gibbsSampler:gibbsSampler.f95:gibbs_sampler
+                real*8 dimension(m,ntopics) :: nzw
+                real*8 dimension(ntopics,m),depend(ntopics,m) :: nzm
+                real*8 :: alpha
+                real*8 :: beta
+                integer, optional,check(shape(nzw,1)==ntopics),depend(nzw) :: ntopics=shape(nzw,1)
+                integer :: n
+                integer, optional,check(shape(nzw,0)==m),depend(nzw) :: m=shape(nzw,0)
+                real*8 :: lik
             end subroutine loglikelihood
-            subroutine log_multinomial_beta(alpha,k,lik) ! in :gibbsSampler1:gibbsSampler.f95:gibbs_sampler
-                real*8 dimension(:),intent(in) :: alpha
-                integer,intent(in) :: k
-                real*8,intent(inout) :: lik
+            subroutine log_multinomial_beta(alpha,k,lik) ! in :gibbsSampler:gibbsSampler.f95:gibbs_sampler
+                real*8 dimension(:) :: alpha
+                integer :: k
+                real*8 :: lik
             end subroutine log_multinomial_beta
+            subroutine conditional_distribution(nzw,nzm,nz,nm,beta,alpha,ntopics,m,n,p_z,j,ll) ! in :gibbsSampler:gibbsSampler.f95:gibbs_sampler
+                real*8 dimension(n,ntopics),intent(in) :: nzw
+                real*8 dimension(ntopics,m),intent(in),depend(ntopics) :: nzm
+                real*8 dimension(ntopics),intent(in),depend(ntopics) :: nz
+                real*8 dimension(m),intent(in),depend(m) :: nm
+                real*8,intent(in) :: beta
+                real*8,intent(in) :: alpha
+                integer, optional,check(shape(nzw,1)==ntopics),intent(in),depend(nzw) :: ntopics=shape(nzw,1)
+                integer, optional,check(shape(nzm,1)==m),intent(in),depend(nzm) :: m=shape(nzm,1)
+                integer, optional,check(shape(nzw,0)==n),intent(in),depend(nzw) :: n=shape(nzw,0)
+                real*8 dimension(ntopics),intent(inout),depend(ntopics) :: p_z
+                integer,intent(inout) :: j
+                integer,intent(inout) :: ll
+            end subroutine conditional_distribution
         end module gibbs_sampler
     end interface 
-end python module gibbsSampler1
+end python module gibbsSampler
 
 ! This file was auto-generated with f2py (version:2).
 ! See http://cens.ioc.ee/projects/f2py2e/

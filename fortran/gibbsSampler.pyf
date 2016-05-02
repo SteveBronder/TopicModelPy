@@ -1,0 +1,40 @@
+!    -*- f90 -*-
+! Note: the context of this file is case sensitive.
+
+python module gibbsSampler1 ! in 
+    interface  ! in :gibbsSampler1
+        module gibbs_sampler ! in :gibbsSampler1:gibbsSampler.f95
+            subroutine gibbssampler(matrix,nwz,nzm,nz,nm,z,ntopics,max_iter,m,n,logpw_z) ! in :gibbsSampler1:gibbsSampler.f95:gibbs_sampler
+                integer dimension(n,m),intent(in) :: matrix
+                real*8 dimension(m,ntopics),intent(inout),depend(m) :: nwz
+                real*8 dimension(ntopics,m),intent(inout),depend(ntopics,m) :: nzm
+                real*8 dimension(n),intent(inout),depend(n) :: nz
+                real*8 dimension(m),intent(inout),depend(m) :: nm
+                integer dimension(m,n),intent(inout),depend(m,n) :: z
+                integer,check(shape(nwz,1)==ntopics),intent(in),depend(nwz) :: ntopics=shape(nwz,1)
+                integer, optional,check(len(logpw_z)>=max_iter),intent(in),depend(logpw_z) :: max_iter=len(logpw_z)
+                integer, optional,check(shape(matrix,1)==m),intent(inout),depend(matrix) :: m=shape(matrix,1)
+                integer, optional,check(shape(matrix,0)==n),intent(inout),depend(matrix) :: n=shape(matrix,0)
+                real*8 dimension(max_iter),intent(inout) :: logpw_z
+            end subroutine gibbssampler
+            subroutine loglikelihood(nwz,nzm,alpha,beta,ntopics,n,m,lik) ! in :gibbsSampler1:gibbsSampler.f95:gibbs_sampler
+                real*8 dimension(m,ntopics),intent(inout) :: nwz
+                real*8 dimension(ntopics,m),intent(inout),depend(ntopics,m) :: nzm
+                real*8,intent(in) :: alpha
+                real*8,intent(in) :: beta
+                integer, check(shape(nwz,1)==ntopics),intent(in),depend(nwz) :: ntopics=shape(nwz,1)
+                integer,intent(inout) :: n
+                integer, check(shape(nwz,0)==m),intent(inout),depend(nwz) :: m=shape(nwz,0)
+                real*8,intent(inout) :: lik
+            end subroutine loglikelihood
+            subroutine log_multinomial_beta(alpha,k,lik) ! in :gibbsSampler1:gibbsSampler.f95:gibbs_sampler
+                real*8 dimension(:),intent(in) :: alpha
+                integer,intent(in) :: k
+                real*8,intent(inout) :: lik
+            end subroutine log_multinomial_beta
+        end module gibbs_sampler
+    end interface 
+end python module gibbsSampler1
+
+! This file was auto-generated with f2py (version:2).
+! See http://cens.ioc.ee/projects/f2py2e/

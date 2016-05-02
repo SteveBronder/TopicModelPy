@@ -1,2 +1,1 @@
-f2py -c gibbsSampler.pyf gibbsSampler.f95 -L. -lmy_lib
-
+f2py -c gibbsSampler.f95 -m gibbsSampler -L. -lmylib
