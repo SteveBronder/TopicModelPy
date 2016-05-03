@@ -3,7 +3,7 @@ MODULE gibbs_sampler
 
 CONTAINS
       subroutine gibbsSampler(matrix,NZW,NZM,NZ,NM,ntopics, &
-     max_iter,M,N,p_z)
+     max_iter,M,N,p_z,topics,topics2)
         IMPLICIT NONE
 ! Everything is transpose in fortran (??) so rows and columns get switched
         integer :: M, N,i,j,ll,nn,ntapp
@@ -12,6 +12,8 @@ CONTAINS
         integer matrix(M,N)
         integer ntopics
         real*4 p_z(ntopics)
+        integer topics(m,n)
+        integer topics2(m,n)
         integer NZ(ntopics)
         integer NM(M)
         integer NZM(ntopics,M)
@@ -20,6 +22,9 @@ CONTAINS
         EXTERNAL genmul
       ntapp = ntopics-1
       do i=1,max_iter
+        if (i > 1) then
+          topics = topics2
+        endif
         do j=1,M
 ! FIXME: ll is like w in the enumerate
 !   (i.e. if first nonzero is at place 27, rep 27 (ll) 4 times (ll)
@@ -27,26 +32,23 @@ CONTAINS
             if (matrix(j,ll) == 0) then
               cycle
             endif
-            ! nn is like i in the enumerate
+            ! note: j = M, ll = N, nn = w
             do nn=1,matrix(j,ll)
-              write(*,*) p_z(1:ntapp) 
-              call genmul(1,p_z(1:ntapp),ntopics,Z)
-              write(*,*) ll
-              write(*,*) nn
-              write(*,*) NZM(Z,j)
-              NZM(j,Z) = NZM(j,Z) - 1
+              Z = topics(m,n)
+              ! Note: Due to memory access in fortran columns have to be rows
+              !  This is why these are reversed and the transpose is
+              !  brought in
+              NZM(Z,j) = NZM(Z,j) - 1
               NM(j) = NM(j) - 1
-              NZW(matrix(j,ll),Z) = NZW(matrix(j,ll),Z) - 1
+              NZW(n,Z) = NZW(n,Z) - 1
               NZ(Z) = NZ(Z) - 1
 
-              write(*,*) p_z(1:ntapp)
-              write(*,*) sum(p_z)
-              call  conditional_distribution(NZW, NZM, NZ, NM, beta, alpha,ntopics,M,N,p_z,j,ll)
+              call  conditional_distribution(matrix,NZW, NZM, NZ, NM, beta, alpha,ntopics,M,N,p_z,j,ll)
               call genmul(1,abs(p_z(1:ntapp)),ntopics,Z)
-
-              NZM(j,Z) = NZM(j,Z) + 1
+              topics2(m,n) = Z
+              NZM(Z,j) = NZM(Z,j) + 1
               NM(j) = NM(j) + 1
-              NZW(Z,matrix(j,ll)) = NZW(Z,matrix(ll,z)) + 1
+              NZW(n,Z) = NZW(n,Z) + 1
               NZ(Z) = NZ(Z) + 1
             enddo  
           enddo
@@ -101,23 +103,44 @@ CONTAINS
 
 ! Conditional Distribution
 
-      subroutine conditional_distribution(NZW, NZM, NZ, NM, beta, alpha,ntopics,M,N,p_z,j,ll)
+      subroutine conditional_distribution(matrix,NZW, NZM, NZ, NM, beta, alpha,ntopics,M,N,p_z,j,ll)
       IMPLICIT NONE
-        integer :: j,ll, M, N
+        integer :: j,ll, M, N,i
         integer ntopics
         real*4 p_z(ntopics)
         real*4 beta
         real*4 alpha
+        real*4 left(ntopics,(N-1))
+        real*4 right(N-1)
+        integer matrix(M,N)
+        integer matrix_cut(M,(N-1))
         integer NZ(ntopics)
         integer NM(M)
         integer NZM(ntopics,M)
         integer NZW(N,ntopics)
-        real*4 left(ntopics)
-        real*4 right(ntopics)
+        integer NZW_cut((N-1),ntopics) 
 
-        left = (NZW(ll,:) + beta) / (NZ + beta * N)
-        right = (NZM(:,j) + alpha) / (NM(j) + alpha * ntopics)
-        p_z = abs(left * right)
+        ! ll is the row to exclude
+        do i=1,N
+          if (i == ll) then
+            cycle
+          endif
+          NZW_cut(i,:) = NZW(i,:)
+        enddo
+
+        do i=1,N
+          if (i == ll) then
+            cycle
+          endif
+          matrix_cut(:,i) = matrix(:,i)
+        enddo
+
+        ! Pretty sure this should not be N, but V
+        ! V:= number of unique words in that document
+        left = (NZW_cut + beta) / sum(NZ + beta)
+        right = (matrix_cut(j,:) + alpha) / (NM + alpha)
+        p_z = matmul(left , right(1:(N-1)))
+        p_z = abs(p_z)
         p_z = p_z / sum(p_z)
       end
 ! End Conditional Distribution
