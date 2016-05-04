@@ -47,7 +47,7 @@ CONTAINS
               !  brought in
               NZM(Z,j) = NZM(Z,j) - 1
               NM(j) = NM(j) - 1
-              NZW(n,Z) = NZW(n,Z) - 1
+              NZW(ll,Z) = NZW(ll,Z) - 1
               NZ(Z) = NZ(Z) - 1
 
               call  conditional_distribution(matrix,NZW, NZM, NZ, beta, alpha,ntopics,M,N,p_z,j,ll)
@@ -77,7 +77,7 @@ CONTAINS
               kk = kk + 1
               NZM(Z,j) = NZM(Z,j) + 1
               NM(j) = NM(j) + 1
-              NZW(n,Z) = NZW(n,Z) + 1
+              NZW(ll,Z) = NZW(ll,Z) + 1
               NZ(Z) = NZ(Z) + 1
             enddo  
           enddo
@@ -115,14 +115,14 @@ CONTAINS
         enddo
 
         do z = 1,ntopics
-              call log_multinomial_beta(NZW(z,:) + beta,lik,ntopics,max_iter,i)
+              call log_multinomial_beta(NZW(:,Z) + beta,lik,ntopics,max_iter,i)
               ! Because below only takes in a single value we write seperate function
               call log_multinomial_beta_single(beta,vsize,lik,max_iter,i)
 
         enddo
 
         do mm = 1,M
-              call log_multinomial_beta(NZM(mm,:) + alpha,lik,ntopics,max_iter,i)
+              call log_multinomial_beta(NZM(:,mm) + alpha,lik,ntopics,max_iter,i)
               call log_multinomial_beta_single(alpha,ntopics,lik,max_iter,i)
         enddo
 

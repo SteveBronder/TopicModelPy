@@ -30,9 +30,22 @@ CONTAINS
         EXTERNAL genmul
       ntapp = ntopics-1
       do i=1,max_iter
+        if (i > 1) then
+          topics = topics2
+        endif
         do j=1,M
+!  ll is like w in the enumerate
+!   (i.e. if first nonzero is at place 27, rep 27 (ll) 4 times (ll)
           do ll=1,N
+            if (matrix(ll,j) == 0) then
+              cycle
+            endif
+            ! note: j = M, ll = N, nn = w
+            do nn=1,matrix(ll,j)
               Z = topics(ll,j)
+              ! Note: Due to memory access in fortran columns have to be rows
+              !  This is why these are reversed and the transpose is
+              !  brought in
               NZM(Z,j) = NZM(Z,j) - 1
               NM(j) = NM(j) - 1
               NZW(n,Z) = NZW(n,Z) - 1
@@ -46,7 +59,6 @@ CONTAINS
               genz = int(Z,4)
 
               call genmul(1,abs(genp_z(1:ntapp)),genntopics,genZ)
-              genZ = genZ + 1
               topics2(ll,j) = genZ
               NZM(Z,j) = NZM(genZ,j) + 1
               NM(j) = NM(j) + 1
