@@ -3,7 +3,7 @@ MODULE gibbs_sampler
 
 CONTAINS
       subroutine gibbsSampler(matrix,NZW,NZM,NZ,NM,ntopics, &
-     max_iter,M,N,p_z,topics,topics2, alpha, beta)
+     max_iter,M,N,p_z,topics,topics2, alpha, beta,lik)
         IMPLICIT NONE
 ! Everything must be row contiguous in fortran
 ! you can check this with <array>.flags.f_contiguous
@@ -19,13 +19,14 @@ CONTAINS
         integer*8, intent(in) :: max_iter
         integer*8, dimension(n,m) :: topics
         integer*8, dimension(n,m) :: topics2
+        integer*8 :: i,j,ll,nn,ntapp
+        integer*8 Z
+        integer*4 genZ
         real*8, dimension(ntopics) :: p_z
         real*4, dimension(ntopics) :: genp_z
         real*8,intent(in) :: alpha
         real*8,intent(in) :: beta
-        integer*8 :: i,j,ll,nn,ntapp
-        integer*8 Z
-        integer*4 genZ
+        real*8, dimension(max_iter), intent(inout) :: lik
         EXTERNAL genmul
       ntapp = ntopics-1
       do i=1,max_iter
@@ -56,8 +57,7 @@ CONTAINS
               genp_z = real(p_z,4)
               genntopics = int(ntopics,4)
               genz = int(Z,4)
-              write(*,*) 'gen p_z'
-              write(*,*) genp_z
+
               call genmul(1,abs(genp_z(1:ntapp)),genntopics,genZ)
               topics2(ll,j) = Z
               NZM(Z,j) = NZM(Z,j) + 1
@@ -69,7 +69,8 @@ CONTAINS
         enddo
         write(*,*) 'Iteration:'
         write(*,*)  i
-        !call loglikelihood(matrix,NZW, NZM, alpha, beta, ntopics,N,M,lik,max_iter,i,j)
+        call loglikelihood(matrix,NZW, NZM, alpha, beta, ntopics,N,M,lik,max_iter,i,j)
+
       enddo
       end
 
@@ -81,15 +82,14 @@ CONTAINS
 
       subroutine loglikelihood(matrix,NZW, NZM, alpha, beta, ntopics,N,M,lik,max_iter,i,j)
         IMPLICIT NONE
-        real*8, intent(in)  :: alpha, beta
-        real*8,dimension(max_iter), intent(inout) :: lik
         integer*8,dimension(n,m),intent(in) :: matrix
         integer*8 vsize
         integer*8,intent(in) :: N, M, ntopics,max_iter,i,j
         integer*8 :: nn,z,mm
         integer*8,dimension(ntopics,M),intent(in) :: NZM
         integer*8,dimension(N,ntopics),intent(in) :: NZW
-        
+        real*8, intent(in)  :: alpha, beta
+        real*8,dimension(max_iter), intent(inout) :: lik
         vsize = 0
         do nn = 1,N
           if (matrix(nn,j) == 0) then
@@ -100,13 +100,16 @@ CONTAINS
 
         do z = 1,ntopics
               call log_multinomial_beta(NZW(z,:) + beta, 0_8,lik,ntopics,max_iter,i)
-              call log_multinomial_beta((/beta/),vsize,lik,ntopics,max_iter,i)
+
+              call log_multinomial_beta((/.1_8/),vsize,lik,ntopics,max_iter,i)
+
         enddo
 
         do mm = 1,M
               call log_multinomial_beta(NZM(mm,:) + alpha, 0_8,lik,ntopics,max_iter,i)
-              call log_multinomial_beta((/alpha/),ntopics,lik,ntopics,max_iter,i)
+              call log_multinomial_beta((/.1_8/),ntopics,lik,ntopics,max_iter,i)
         enddo
+
       end  
 
 ! End loglikelihood      
@@ -117,12 +120,22 @@ CONTAINS
         real*8,dimension(ntopics), intent(in) :: alpha
         real*8,dimension(max_iter),intent(inout) :: lik
         integer*8,intent(in) :: K, ntopics,max_iter,i
- 
-        if (K == 0) then
+
+        if (K == 0_8) then
            lik(i) = lik(i) + sum(log_gamma(alpha)) - log_gamma(sum(alpha))
+
         else
 ! in the original code it was -=, but K!=0 only when we subtract
-           lik(i) = lik(i) - (K * sum(log_gamma(alpha)) - log_gamma(K * sum(alpha)))
+           lik(i) = lik(i) - (K * sum(log_gamma(alpha(1))) - log_gamma(K * sum(alpha(1))))
+              write(*,*) 'Likelihood: sum_log'
+              write(*,*)  sum(log_gamma(alpha)) 
+              write(*,*) 'Likelihood: Sum alpha'
+              write(*,*)  sum(alpha)
+              write(*,*) 'Likelihood: log_gamma'
+              write(*,*)  log_gamma(alpha) 
+              write(*,*) 'Likelihood: alpha'
+              write(*,*)  alpha 
+
         endif
       end
 ! End multinomial beta
@@ -152,8 +165,6 @@ CONTAINS
         do ii = 1,ntopics
           p_z(ii) = ((NZM(ii,j) + alpha) * (NZW(ll,ii) + beta)) / (NZ(ii) + vsize * beta)
         enddo
-        write(*,*) 'Before'
-        write(*,*) p_z
         ! this abs() shouldn't have to be here...
         p_z = abs(p_z)
         p_z = p_z / sum(p_z)
@@ -183,8 +194,6 @@ CONTAINS
             enddo
           endif
         enddo
-        write(*,*) 'After'
-        write(*,*) p_z
       end
 
 ! End Conditional Distribution

@@ -3,7 +3,7 @@ MODULE gibbs_sampler
 
 CONTAINS
       subroutine gibbsSampler(matrix,NZW,NZM,NZ,NM,ntopics, &
-     max_iter,M,N,p_z,topics,topics2, alpha, beta)
+     max_iter,M,N,p_z,topics,topics2, alpha, beta,lik)
         IMPLICIT NONE
 ! Everything must be row contiguous in fortran
 ! you can check this with <array>.flags.f_contiguous
@@ -19,13 +19,14 @@ CONTAINS
         integer*8, intent(in) :: max_iter
         integer*8, dimension(n,m) :: topics
         integer*8, dimension(n,m) :: topics2
+        integer*8 :: i,j,ll,nn,ntapp
+        integer*8 Z
+        integer*4 genZ
         real*8, dimension(ntopics) :: p_z
         real*4, dimension(ntopics) :: genp_z
         real*8,intent(in) :: alpha
         real*8,intent(in) :: beta
-        integer*8 :: i,j,ll,nn,ntapp
-        integer*8 Z
-        integer*4 genZ
+        real*8, dimension(max_iter), intent(inout) :: lik
         EXTERNAL genmul
       ntapp = ntopics-1
       do i=1,max_iter
@@ -68,7 +69,8 @@ CONTAINS
         enddo
         write(*,*) 'Iteration:'
         write(*,*)  i
-        !call loglikelihood(matrix,NZW, NZM, alpha, beta, ntopics,N,M,lik,max_iter,i,j)
+        call loglikelihood(matrix,NZW, NZM, alpha, beta, ntopics,N,M,lik,max_iter,i,j)
+
       enddo
       end
 
@@ -80,15 +82,14 @@ CONTAINS
 
       subroutine loglikelihood(matrix,NZW, NZM, alpha, beta, ntopics,N,M,lik,max_iter,i,j)
         IMPLICIT NONE
-        real*8, intent(in)  :: alpha, beta
-        real*8,dimension(max_iter), intent(inout) :: lik
         integer*8,dimension(n,m),intent(in) :: matrix
         integer*8 vsize
         integer*8,intent(in) :: N, M, ntopics,max_iter,i,j
         integer*8 :: nn,z,mm
         integer*8,dimension(ntopics,M),intent(in) :: NZM
         integer*8,dimension(N,ntopics),intent(in) :: NZW
-        
+        real*8, intent(in)  :: alpha, beta
+        real*8,dimension(max_iter), intent(inout) :: lik
         vsize = 0
         do nn = 1,N
           if (matrix(nn,j) == 0) then
@@ -99,13 +100,16 @@ CONTAINS
 
         do z = 1,ntopics
               call log_multinomial_beta(NZW(z,:) + beta, 0_8,lik,ntopics,max_iter,i)
-              call log_multinomial_beta((/beta/),vsize,lik,ntopics,max_iter,i)
+
+              call log_multinomial_beta_single(beta,vsize,lik,ntopics,max_iter,i)
+
         enddo
 
         do mm = 1,M
               call log_multinomial_beta(NZM(mm,:) + alpha, 0_8,lik,ntopics,max_iter,i)
-              call log_multinomial_beta((/alpha/),ntopics,lik,ntopics,max_iter,i)
+              call log_multinomial_beta_single(alpha,ntopics,lik,ntopics,max_iter,i)
         enddo
+
       end  
 
 ! End loglikelihood      
@@ -116,15 +120,23 @@ CONTAINS
         real*8,dimension(ntopics), intent(in) :: alpha
         real*8,dimension(max_iter),intent(inout) :: lik
         integer*8,intent(in) :: K, ntopics,max_iter,i
- 
-        if (K == 0) then
+
            lik(i) = lik(i) + sum(log_gamma(alpha)) - log_gamma(sum(alpha))
-        else
-! in the original code it was -=, but K!=0 only when we subtract
-           lik(i) = lik(i) - (K * sum(log_gamma(alpha)) - log_gamma(K * sum(alpha)))
-        endif
       end
+     
 ! End multinomial beta
+
+! Start multinomial beta _ one value
+      subroutine log_multinomial_beta_single(alpha,K,lik,ntopics,max_iter,i)
+        IMPLICIT NONE
+        real*8, intent(in) :: alpha
+        real*8,dimension(max_iter),intent(inout) :: lik
+        integer*8,intent(in) :: K, ntopics,max_iter,i
+
+           lik(i) = lik(i) - (K * log_gamma(alpha)) - log_gamma(K * alpha)
+
+      end
+! End multinomial beta _ one value 
 
 ! Conditional Distribution
 
