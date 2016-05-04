@@ -20,8 +20,8 @@ CONTAINS
         integer*8, dimension(n,m) :: topics
         integer*8, dimension(n,m) :: topics2
         integer*8 :: i,j,ll,nn,ntapp
-        integer*8 :: Z, gg
-        integer*4 genZ(ntopics)
+        integer*8 Z
+        integer*4 genZ
         real*8, dimension(ntopics) :: p_z
         real*4, dimension(ntopics) :: genp_z
         real*8,intent(in) :: alpha
@@ -40,7 +40,7 @@ CONTAINS
             if (matrix(ll,j) == 0) then
               cycle
             endif
-             !note: j = M, ll = N, nn = w
+            ! note: j = M, ll = N, nn = w
             do nn=1,matrix(ll,j)
               Z = topics(ll,j)
               ! Note: Due to memory access in fortran columns have to be rows
@@ -56,28 +56,14 @@ CONTAINS
               ! genmul only accebts kind = 4 variables
               genp_z = real(p_z,4)
               genntopics = int(ntopics,4)
-              
-              ! Trying to smooth these guys out
-              ! Also making genZ into array of zeros
-              do gg = 1,ntopics
-                genp_z(gg) = abs(genp_z(gg))
-                genZ(gg) = 0
-              enddo
-                genp_z = genp_z / sum(genp_z)
-              ! genmul returns (/0,0,0,1/), a specific realization of one of the multinom
-              call genmul(1,abs(genp_z),genntopics,genZ)
-              
-              do gg = 1,ntopics
-                if (genZ(gg) == 1) then
-                  Z = gg
-                  exit
-                endif
-              enddo
-              topics2(ll,j) = Z
-              NZM(Z,j) = NZM(Z,j) + 1
+              genz = int(Z,4)
+
+              call genmul(1,abs(genp_z(1:ntapp)),genntopics,genZ)
+              topics2(ll,j) = genZ
+              NZM(Z,j) = NZM(genZ,j) + 1
               NM(j) = NM(j) + 1
-              NZW(n,Z) = NZW(n,Z) + 1
-              NZ(Z) = NZ(Z) + 1
+              NZW(n,Z) = NZW(n,genZ) + 1
+              NZ(Z) = NZ(genZ) + 1
             enddo  
           enddo
         enddo
@@ -115,12 +101,9 @@ CONTAINS
 
         do z = 1,ntopics
               call log_multinomial_beta(NZW(z,:) + beta,lik,ntopics,max_iter,i)
-        write(*,*) 'Likelihood: Beta B'
-        write(*,*) lik(i)
               ! Because below only takes in a single value we write seperate function
               call log_multinomial_beta_single(beta,vsize,lik,max_iter,i)
-        write(*,*) 'Likelihood: Beta A'
-        write(*,*) lik(i)
+
         enddo
 
         do mm = 1,M

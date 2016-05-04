@@ -20,8 +20,8 @@ CONTAINS
         integer*8, dimension(n,m) :: topics
         integer*8, dimension(n,m) :: topics2
         integer*8 :: i,j,ll,nn,ntapp
-        integer*8 Z
-        integer*4 genZ
+        integer*8 :: Z, gg
+        integer*4 genZ(ntopics)
         real*8, dimension(ntopics) :: p_z
         real*4, dimension(ntopics) :: genp_z
         real*8,intent(in) :: alpha
@@ -40,7 +40,7 @@ CONTAINS
             if (matrix(ll,j) == 0) then
               cycle
             endif
-            ! note: j = M, ll = N, nn = w
+             !note: j = M, ll = N, nn = w
             do nn=1,matrix(ll,j)
               Z = topics(ll,j)
               ! Note: Due to memory access in fortran columns have to be rows
@@ -56,9 +56,23 @@ CONTAINS
               ! genmul only accebts kind = 4 variables
               genp_z = real(p_z,4)
               genntopics = int(ntopics,4)
-              genz = int(Z,4)
-
-              call genmul(1,abs(genp_z(1:ntapp)),genntopics,genZ)
+              
+              ! Trying to smooth these guys out
+              ! Also making genZ into array of zeros
+              do gg = 1,ntopics
+                genp_z(gg) = abs(genp_z(gg))
+                genZ(gg) = 0
+              enddo
+                genp_z = genp_z / sum(genp_z)
+              ! genmul returns (/0,0,0,1/), a specific realization of one of the multinom
+              call genmul(1,abs(genp_z),genntopics,genZ)
+              
+              do gg = 1,ntopics
+                if (genZ(gg) == 1) then
+                  Z = gg
+                  exit
+                endif
+              enddo
               topics2(ll,j) = Z
               NZM(Z,j) = NZM(Z,j) + 1
               NM(j) = NM(j) + 1
@@ -68,9 +82,10 @@ CONTAINS
           enddo
         enddo
         write(*,*) 'Iteration:'
-        write(*,*)  i
+        write(*,*) i
         call loglikelihood(matrix,NZW, NZM, alpha, beta, ntopics,N,M,lik,max_iter,i,j)
-
+        write(*,*) 'Likelihood:'
+        write(*,*) lik(i)
       enddo
       end
 
@@ -99,15 +114,15 @@ CONTAINS
         enddo
 
         do z = 1,ntopics
-              call log_multinomial_beta(NZW(z,:) + beta, 0_8,lik,ntopics,max_iter,i)
-
-              call log_multinomial_beta_single(beta,vsize,lik,ntopics,max_iter,i)
+              call log_multinomial_beta(NZW(z,:) + beta,lik,ntopics,max_iter,i)
+              ! Because below only takes in a single value we write seperate function
+              call log_multinomial_beta_single(beta,vsize,lik,max_iter,i)
 
         enddo
 
         do mm = 1,M
-              call log_multinomial_beta(NZM(mm,:) + alpha, 0_8,lik,ntopics,max_iter,i)
-              call log_multinomial_beta_single(alpha,ntopics,lik,ntopics,max_iter,i)
+              call log_multinomial_beta(NZM(mm,:) + alpha,lik,ntopics,max_iter,i)
+              call log_multinomial_beta_single(alpha,ntopics,lik,max_iter,i)
         enddo
 
       end  
@@ -115,11 +130,11 @@ CONTAINS
 ! End loglikelihood      
 
 ! log_multinomial_beta
-      subroutine log_multinomial_beta(alpha,K,lik,ntopics,max_iter,i)
+      subroutine log_multinomial_beta(alpha,lik,ntopics,max_iter,i)
         IMPLICIT NONE
         real*8,dimension(ntopics), intent(in) :: alpha
         real*8,dimension(max_iter),intent(inout) :: lik
-        integer*8,intent(in) :: K, ntopics,max_iter,i
+        integer*8,intent(in) :: ntopics,max_iter,i
 
            lik(i) = lik(i) + sum(log_gamma(alpha)) - log_gamma(sum(alpha))
       end
@@ -127,11 +142,11 @@ CONTAINS
 ! End multinomial beta
 
 ! Start multinomial beta _ one value
-      subroutine log_multinomial_beta_single(alpha,K,lik,ntopics,max_iter,i)
+      subroutine log_multinomial_beta_single(alpha,K,lik,max_iter,i)
         IMPLICIT NONE
         real*8, intent(in) :: alpha
         real*8,dimension(max_iter),intent(inout) :: lik
-        integer*8,intent(in) :: K, ntopics,max_iter,i
+        integer*8,intent(in) :: K,max_iter,i
 
            lik(i) = lik(i) - (K * log_gamma(alpha)) - log_gamma(K * alpha)
 
