@@ -7,22 +7,25 @@ CONTAINS
         IMPLICIT NONE
 ! Everything must be row contiguous in fortran
 ! you can check this with <array>.flags.f_contiguous
-        integer, dimension(n,m) :: matrix
-        integer m
-        integer n
-        integer, dimension(n,ntopics) :: nzw
-        integer, dimension(ntopics,m) :: nzm
-        integer, dimension(ntopics) :: nz
-        integer, dimension(m) :: nm
-        integer, intent(in) :: ntopics
-        integer, intent(in) :: max_iter
-        integer, dimension(n,m) :: topics
-        integer, dimension(n,m) :: topics2
-        real, dimension(ntopics) :: p_z
+        integer*8, dimension(n,m) :: matrix
+        integer*8 m
+        integer*8 n
+        integer*8, dimension(n,ntopics) :: nzw
+        integer*8, dimension(ntopics,m) :: nzm
+        integer*8, dimension(ntopics) :: nz
+        integer*8, dimension(m) :: nm
+        integer*8, intent(in) :: ntopics
+        integer*4 Genntopics
+        integer*8, intent(in) :: max_iter
+        integer*8, dimension(n,m) :: topics
+        integer*8, dimension(n,m) :: topics2
+        real*8, dimension(ntopics) :: p_z
+        real*4, dimension(ntopics) :: genp_z
         real*8,intent(in) :: alpha
         real*8,intent(in) :: beta
-        integer :: i,j,ll,nn,ntapp
-        integer Z
+        integer*8 :: i,j,ll,nn,ntapp
+        integer*8 Z
+        integer*4 genZ
         EXTERNAL genmul
       ntapp = ntopics-1
       do i=1,max_iter
@@ -48,8 +51,14 @@ CONTAINS
               NZ(Z) = NZ(Z) - 1
 
               call  conditional_distribution(matrix,NZW, NZM, NZ, beta, alpha,ntopics,M,N,p_z,j,ll)
-
-              call genmul(1,abs(p_z(1:ntapp)),ntopics,Z)
+              
+              ! genmul only accebts kind = 4 variables
+              genp_z = real(p_z,4)
+              genntopics = int(ntopics,4)
+              genz = int(Z,4)
+              write(*,*) 'gen p_z'
+              write(*,*) genp_z
+              call genmul(1,abs(genp_z(1:ntapp)),genntopics,genZ)
               topics2(ll,j) = Z
               NZM(Z,j) = NZM(Z,j) + 1
               NM(j) = NM(j) + 1
@@ -73,13 +82,13 @@ CONTAINS
       subroutine loglikelihood(matrix,NZW, NZM, alpha, beta, ntopics,N,M,lik,max_iter,i,j)
         IMPLICIT NONE
         real*8, intent(in)  :: alpha, beta
-        real,dimension(max_iter), intent(inout) :: lik
-        integer,dimension(n,m),intent(in) :: matrix
-        integer vsize
-        integer,intent(in) :: N, M, ntopics,max_iter,i,j
-        integer :: nn,z,mm
-        integer,dimension(ntopics,M),intent(in) :: NZM
-        integer,dimension(N,ntopics),intent(in) :: NZW
+        real*8,dimension(max_iter), intent(inout) :: lik
+        integer*8,dimension(n,m),intent(in) :: matrix
+        integer*8 vsize
+        integer*8,intent(in) :: N, M, ntopics,max_iter,i,j
+        integer*8 :: nn,z,mm
+        integer*8,dimension(ntopics,M),intent(in) :: NZM
+        integer*8,dimension(N,ntopics),intent(in) :: NZW
         
         vsize = 0
         do nn = 1,N
@@ -90,12 +99,12 @@ CONTAINS
         enddo
 
         do z = 1,ntopics
-              call log_multinomial_beta(NZW(z,:) + beta, 0,lik,ntopics,max_iter,i)
+              call log_multinomial_beta(NZW(z,:) + beta, 0_8,lik,ntopics,max_iter,i)
               call log_multinomial_beta((/beta/),vsize,lik,ntopics,max_iter,i)
         enddo
 
         do mm = 1,M
-              call log_multinomial_beta(NZM(mm,:) + alpha, 0,lik,ntopics,max_iter,i)
+              call log_multinomial_beta(NZM(mm,:) + alpha, 0_8,lik,ntopics,max_iter,i)
               call log_multinomial_beta((/alpha/),ntopics,lik,ntopics,max_iter,i)
         enddo
       end  
@@ -106,8 +115,8 @@ CONTAINS
       subroutine log_multinomial_beta(alpha,K,lik,ntopics,max_iter,i)
         IMPLICIT NONE
         real*8,dimension(ntopics), intent(in) :: alpha
-        real,dimension(max_iter),intent(inout) :: lik
-        integer,intent(in) :: K, ntopics,max_iter,i
+        real*8,dimension(max_iter),intent(inout) :: lik
+        integer*8,intent(in) :: K, ntopics,max_iter,i
  
         if (K == 0) then
            lik(i) = lik(i) + sum(log_gamma(alpha)) - log_gamma(sum(alpha))
@@ -122,16 +131,16 @@ CONTAINS
 
       subroutine conditional_distribution(matrix,NZW, NZM, NZ, beta, alpha,ntopics,M,N,p_z,j,ll)
       IMPLICIT NONE
-        integer,intent(in) :: j,ll,M, N,ntopics
-        integer ii,nn,aa
-        real, intent(inout) :: p_z(ntopics)
+        integer*8,intent(in) :: j,ll,M, N,ntopics
+        integer*8 ii,nn,aa
+        real*8, intent(inout) :: p_z(ntopics)
         real*8, intent(in) :: beta
         real*8, intent(in) :: alpha
-        integer,dimension(N,M),intent(in) :: matrix
-        integer,dimension(ntopics),intent(in) :: NZ
-        integer,dimension(ntopics,M),intent(in) :: NZM
-        integer,dimension(N,ntopics),intent(in) :: NZW
-        integer vsize
+        integer*8,dimension(N,M),intent(in) :: matrix
+        integer*8,dimension(ntopics),intent(in) :: NZ
+        integer*8,dimension(ntopics,M),intent(in) :: NZM
+        integer*8,dimension(N,ntopics),intent(in) :: NZW
+        integer*8 vsize
         
         vsize = 0
         do nn = 1,N
@@ -143,7 +152,8 @@ CONTAINS
         do ii = 1,ntopics
           p_z(ii) = ((NZM(ii,j) + alpha) * (NZW(ll,ii) + beta)) / (NZ(ii) + vsize * beta)
         enddo
-        
+        write(*,*) 'Before'
+        write(*,*) p_z
         ! this abs() shouldn't have to be here...
         p_z = abs(p_z)
         p_z = p_z / sum(p_z)
@@ -173,7 +183,10 @@ CONTAINS
             enddo
           endif
         enddo
+        write(*,*) 'After'
+        write(*,*) p_z
       end
+
 ! End Conditional Distribution
 END MODULE gibbs_sampler
 
