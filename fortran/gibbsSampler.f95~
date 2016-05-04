@@ -3,22 +3,26 @@ MODULE gibbs_sampler
 
 CONTAINS
       subroutine gibbsSampler(matrix,NZW,NZM,NZ,NM,ntopics, &
-     max_iter,M,N,p_z,topics,topics2)
+     max_iter,M,N,p_z,topics,topics2, alpha, beta)
         IMPLICIT NONE
-! Everything is transpose in fortran (??) so rows and columns get switched
-        integer :: M, N,i,j,ll,nn,ntapp
-        integer max_iter
+! Everything must be row contiguous in fortran
+! you can check this with <array>.flags.f_contiguous
+        integer, dimension(n,m) :: matrix
+        integer m
+        integer n
+        integer, dimension(n,ntopics) :: nzw
+        integer, dimension(ntopics,m) :: nzm
+        integer, dimension(ntopics) :: nz
+        integer, dimension(m) :: nm
+        integer, intent(in) :: ntopics
+        integer, intent(in) :: max_iter
+        integer, dimension(n,m) :: topics
+        integer, dimension(n,m) :: topics2
+        real, dimension(ntopics) :: p_z
+        real*8,intent(in) :: alpha
+        real*8,intent(in) :: beta
+        integer :: i,j,ll,nn,ntapp
         integer Z
-        integer matrix(M,N)
-        integer ntopics
-        real*4 p_z(ntopics)
-        integer topics(m,n)
-        integer topics2(m,n)
-        integer NZ(ntopics)
-        integer NM(M)
-        integer NZM(ntopics,M)
-        integer NZW(N,ntopics)
-        real*4 :: alpha, beta
         EXTERNAL genmul
       ntapp = ntopics-1
       do i=1,max_iter
@@ -26,15 +30,15 @@ CONTAINS
           topics = topics2
         endif
         do j=1,M
-! FIXME: ll is like w in the enumerate
+!  ll is like w in the enumerate
 !   (i.e. if first nonzero is at place 27, rep 27 (ll) 4 times (ll)
           do ll=1,N
-            if (matrix(j,ll) == 0) then
+            if (matrix(ll,j) == 0) then
               cycle
             endif
             ! note: j = M, ll = N, nn = w
-            do nn=1,matrix(j,ll)
-              Z = topics(m,n)
+            do nn=1,matrix(ll,j)
+              Z = topics(ll,j)
               ! Note: Due to memory access in fortran columns have to be rows
               !  This is why these are reversed and the transpose is
               !  brought in
@@ -43,9 +47,10 @@ CONTAINS
               NZW(n,Z) = NZW(n,Z) - 1
               NZ(Z) = NZ(Z) - 1
 
-              call  conditional_distribution(matrix,NZW, NZM, NZ, NM, beta, alpha,ntopics,M,N,p_z,j,ll)
+              call  conditional_distribution(matrix,NZW, NZM, NZ, beta, alpha,ntopics,M,N,p_z,j,ll)
+
               call genmul(1,abs(p_z(1:ntapp)),ntopics,Z)
-              topics2(m,n) = Z
+              topics2(ll,j) = Z
               NZM(Z,j) = NZM(Z,j) + 1
               NM(j) = NM(j) + 1
               NZW(n,Z) = NZW(n,Z) + 1
@@ -53,6 +58,9 @@ CONTAINS
             enddo  
           enddo
         enddo
+        write(*,*) 'Iteration:'
+        write(*,*)  i
+        !call loglikelihood(matrix,NZW, NZM, alpha, beta, ntopics,N,M,lik,max_iter,i,j)
       enddo
       end
 
@@ -62,86 +70,109 @@ CONTAINS
 
 ! loglikelihood !/! FIXME: N here needs to be vocab
 
-      subroutine loglikelihood(NZW, NZM, alpha, beta, ntopics,N,M,lik)
+      subroutine loglikelihood(matrix,NZW, NZM, alpha, beta, ntopics,N,M,lik,max_iter,i,j)
         IMPLICIT NONE
-        real*4 NZM(ntopics,M)
-        real*4 NZW(M,ntopics)
-        real*4  :: alpha, beta
-        integer :: N, M, z, mm, ntopics
-        real*4 lik
-
-        lik = 0d0
-
-        do z = 1,ntopics
-              call log_multinomial_beta(NZW(z,:) + beta,0,lik)
-              call log_multinomial_beta((/beta/),N,lik)
+        real*8, intent(in)  :: alpha, beta
+        real,dimension(max_iter), intent(inout) :: lik
+        integer,dimension(n,m),intent(in) :: matrix
+        integer vsize
+        integer,intent(in) :: N, M, ntopics,max_iter,i,j
+        integer :: nn,z,mm
+        integer,dimension(ntopics,M),intent(in) :: NZM
+        integer,dimension(N,ntopics),intent(in) :: NZW
+        
+        vsize = 0
+        do nn = 1,N
+          if (matrix(nn,j) == 0) then
+            cycle
+          endif
+          vsize = vsize + 1
         enddo
 
-        do mm = 1,ntopics
-              call log_multinomial_beta(NZM(mm,:) + alpha,0,lik)
-              call log_multinomial_beta((/alpha/),ntopics,lik)
+        do z = 1,ntopics
+              call log_multinomial_beta(NZW(z,:) + beta, 0,lik,ntopics,max_iter,i)
+              call log_multinomial_beta((/beta/),vsize,lik,ntopics,max_iter,i)
+        enddo
+
+        do mm = 1,M
+              call log_multinomial_beta(NZM(mm,:) + alpha, 0,lik,ntopics,max_iter,i)
+              call log_multinomial_beta((/alpha/),ntopics,lik,ntopics,max_iter,i)
         enddo
       end  
 
 ! End loglikelihood      
 
 ! log_multinomial_beta
-      subroutine log_multinomial_beta(alpha,K,lik)
+      subroutine log_multinomial_beta(alpha,K,lik,ntopics,max_iter,i)
         IMPLICIT NONE
-        real*4, dimension(:) :: alpha
-        real*4 lik
-        integer K
+        real*8,dimension(ntopics), intent(in) :: alpha
+        real,dimension(max_iter),intent(inout) :: lik
+        integer,intent(in) :: K, ntopics,max_iter,i
  
         if (K == 0) then
-           lik = lik + sum(log_gamma(alpha)) - log_gamma(sum(alpha))
+           lik(i) = lik(i) + sum(log_gamma(alpha)) - log_gamma(sum(alpha))
         else
 ! in the original code it was -=, but K!=0 only when we subtract
-           lik = lik - (K * sum(log_gamma(alpha)) - log_gamma(K * sum(alpha)))
+           lik(i) = lik(i) - (K * sum(log_gamma(alpha)) - log_gamma(K * sum(alpha)))
         endif
       end
 ! End multinomial beta
 
 ! Conditional Distribution
 
-      subroutine conditional_distribution(matrix,NZW, NZM, NZ, NM, beta, alpha,ntopics,M,N,p_z,j,ll)
+      subroutine conditional_distribution(matrix,NZW, NZM, NZ, beta, alpha,ntopics,M,N,p_z,j,ll)
       IMPLICIT NONE
-        integer :: j,ll, M, N,i
-        integer ntopics
-        real*4 p_z(ntopics)
-        real*4 beta
-        real*4 alpha
-        real*4 left(ntopics,(N-1))
-        real*4 right(N-1)
-        integer matrix(M,N)
-        integer matrix_cut(M,(N-1))
-        integer NZ(ntopics)
-        integer NM(M)
-        integer NZM(ntopics,M)
-        integer NZW(N,ntopics)
-        integer NZW_cut((N-1),ntopics) 
-
-        ! ll is the row to exclude
-        do i=1,N
-          if (i == ll) then
+        integer,intent(in) :: j,ll,M, N,ntopics
+        integer ii,nn,aa
+        real, intent(inout) :: p_z(ntopics)
+        real*8, intent(in) :: beta
+        real*8, intent(in) :: alpha
+        integer,dimension(N,M),intent(in) :: matrix
+        integer,dimension(ntopics),intent(in) :: NZ
+        integer,dimension(ntopics,M),intent(in) :: NZM
+        integer,dimension(N,ntopics),intent(in) :: NZW
+        integer vsize
+        
+        vsize = 0
+        do nn = 1,N
+          if (matrix(nn,j) == 0) then
             cycle
           endif
-          NZW_cut(i,:) = NZW(i,:)
+          vsize = vsize + 1
         enddo
-
-        do i=1,N
-          if (i == ll) then
-            cycle
-          endif
-          matrix_cut(:,i) = matrix(:,i)
+        do ii = 1,ntopics
+          p_z(ii) = ((NZM(ii,j) + alpha) * (NZW(ll,ii) + beta)) / (NZ(ii) + vsize * beta)
         enddo
-
-        ! Pretty sure this should not be N, but V
-        ! V:= number of unique words in that document
-        left = (NZW_cut + beta) / sum(NZ + beta)
-        right = (matrix_cut(j,:) + alpha) / (NM + alpha)
-        p_z = matmul(left , right(1:(N-1)))
+        
+        ! this abs() shouldn't have to be here...
         p_z = abs(p_z)
         p_z = p_z / sum(p_z)
+        
+        ! We need to do something to remove 'bunching' to one topic
+        ! since an error happens at genmul is any p_z is > .99
+        ! for now, just iterate through, if a p_z is > .99 then
+        ! subtract .01 from p_z(ii) and add .01 to p_z((ii-1))
+
+        do ii = 1,ntopics
+          
+          if (0.99E+00 < p_z(ii)) then
+            p_z(ii) = p_z(ii) - .1
+            do aa = 1,ntopics
+              if (ii == aa) then
+                cycle
+              endif
+              p_z(aa) = p_z(aa) + (.1 / (ntopics-1))
+            enddo
+          elseif (.001 > p_z(ii)) then
+            p_z(ii) = p_z(ii) + .1
+            do aa = 1,ntopics
+              if (ii == aa) then
+                cycle
+              endif
+              p_z(aa) = p_z(aa) - (.1 / (ntopics-1))
+            enddo
+          endif
+        enddo
       end
 ! End Conditional Distribution
 END MODULE gibbs_sampler

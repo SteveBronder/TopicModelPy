@@ -1031,7 +1031,6 @@ function ignbin ( n, pp )
   real ( kind = 4 ) z
   real ( kind = 4 ) z2
 
-  p = min ( pp, 1.0E+00 - pp )
   if ( pp <= 0.0E+00 .or. 1.0E+00 <= pp ) then
     write ( *, '(a)' ) ' '
     write ( *, '(a)' ) 'IGNBIN - Fatal error!'
@@ -1039,7 +1038,7 @@ function ignbin ( n, pp )
     stop 1
   end if
 
-
+  p = min ( pp, 1.0E+00 - pp )
   q = 1.0E+00 - p
   xnp = real ( n, kind = 4 ) * p
 
