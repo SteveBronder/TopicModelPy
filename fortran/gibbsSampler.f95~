@@ -11,7 +11,7 @@ CONTAINS
         integer*8 m
         integer*8 n
         integer*8 top_size
-        integer*8, dimension(n,ntopics) :: nzw
+        integer*8, dimension(ntopics,n) :: nzw
         integer*8, dimension(ntopics,m) :: nzm
         integer*8, dimension(ntopics) :: nz
         integer*8, dimension(m) :: nm
@@ -47,7 +47,7 @@ CONTAINS
               !  brought in
               NZM(Z,j) = NZM(Z,j) - 1
               NM(j) = NM(j) - 1
-              NZW(ll,Z) = NZW(ll,Z) - 1
+              NZW(Z,ll) = NZW(Z,ll) - 1
               NZ(Z) = NZ(Z) - 1
 
               call  conditional_distribution(matrix,NZW, NZM, NZ, beta, alpha,ntopics,M,N,p_z,j,ll)
@@ -77,7 +77,7 @@ CONTAINS
               kk = kk + 1
               NZM(Z,j) = NZM(Z,j) + 1
               NM(j) = NM(j) + 1
-              NZW(ll,Z) = NZW(ll,Z) + 1
+              NZW(Z,ll) = NZW(Z,ll) + 1
               NZ(Z) = NZ(Z) + 1
             enddo  
           enddo
@@ -103,7 +103,7 @@ CONTAINS
         integer*8,intent(in) :: N, M, ntopics,max_iter,i,j
         integer*8 :: nn,z,mm
         integer*8,dimension(ntopics,M),intent(in) :: NZM
-        integer*8,dimension(N,ntopics),intent(in) :: NZW
+        integer*8,dimension(ntopics,N),intent(in) :: NZW
         real*8, intent(in)  :: alpha, beta
         real*8,dimension(max_iter), intent(inout) :: lik
         vsize = 0
@@ -115,7 +115,7 @@ CONTAINS
         enddo
 
         do z = 1,ntopics
-              call log_multinomial_beta(NZW(,z) + beta,lik,ntopics,max_iter,i)
+              call log_multinomial_beta(NZW(:,Z) + beta,lik,ntopics,max_iter,i)
               ! Because below only takes in a single value we write seperate function
               call log_multinomial_beta_single(beta,vsize,lik,max_iter,i)
 
@@ -179,10 +179,13 @@ CONTAINS
         do ii = 1,ntopics
           p_z(ii) = ((NZM(ii,j) + alpha) * (NZW(ll,ii) + beta)) / (NZ(ii) + vsize * beta)
         enddo
+        write(*,*) 'p_z: Before Abs'
+        write(*,*) p_z
         ! this abs() shouldn't have to be here...
         p_z = abs(p_z)
         p_z = p_z / sum(p_z)
-        
+        write(*,*) 'p_z: After Abs'
+        write(*,*) p_z
         ! We need to do something to remove 'bunching' to one topic
         ! since an error happens at genmul is any p_z is > .99
         ! for now, just iterate through, if a p_z is > .99 then

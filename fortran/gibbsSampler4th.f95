@@ -7,6 +7,7 @@ CONTAINS
         IMPLICIT NONE
 ! Everything must be row contiguous in fortran
 ! you can check this with <array>.flags.f_contiguous
+! We want all largest dimensions to be on the right
         integer*8, dimension(m,n) :: matrix
         integer*8 m
         integer*8 n
@@ -18,7 +19,7 @@ CONTAINS
         integer*8, intent(in) :: ntopics
         integer*4 Genntopics
         integer*8, intent(in) :: max_iter
-        integer*8, dimension(top_size,3) :: topics
+        integer*8, dimension(3,top_size) :: topics
         integer*8 :: i,j,ll,nn
         integer*8 :: Z, gg, kk
         integer*4, dimension(ntopics) :: genZ
@@ -39,9 +40,9 @@ CONTAINS
             !      ll word = topics(1,kk)
             !      nn word_count = topics(3,kk)
             !       Z word_topic = topics(3,kk)
-              ll = topics(kk,1)
-              nn = topics(kk,2)
-              Z  = topics(kk,3)
+              ll = topics(1,kk)
+              nn = topics(2,kk)
+              Z  = topics(3,kk)
               ! Note: Due to memory access in fortran columns have to be rows
               !  This is why these are reversed and the transpose is
               !  brought in
@@ -62,7 +63,8 @@ CONTAINS
                 genp_z(gg) = abs(genp_z(gg))
                 genZ(gg) = 0
               enddo
-                genp_z = genp_z / sum(genp_z)
+              genZ = 0
+              genp_z = genp_z / sum(genp_z)
               ! genmul returns (/0,0,0,1/), a specific realization of one of the multinom
               call genmul(1,abs(genp_z),genntopics,genZ)
               
@@ -73,7 +75,7 @@ CONTAINS
                 endif
               enddo
               
-              topics(kk,3) = Z
+              topics(3,kk) = Z
               NZM(j,Z) = NZM(j,Z) + 1
               NM(j) = NM(j) + 1
               NZW(Z,ll) = NZW(Z,ll) + 1
@@ -114,7 +116,7 @@ CONTAINS
         enddo
 
         do z = 1,ntopics
-              call log_multinomial_beta(NZW(:,z) + beta,lik,ntopics,max_iter,i)
+              call log_multinomial_beta(NZW(Z,:) + beta,lik,ntopics,max_iter,i)
               ! Because below only takes in a single value we write seperate function
               call log_multinomial_beta_single(beta,vsize,lik,max_iter,i)
 
