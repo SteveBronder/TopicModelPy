@@ -179,13 +179,8 @@ CONTAINS
         do ii = 1,ntopics
           p_z(ii) = ((NZM(ii,j) + alpha) * (NZW(ll,ii) + beta)) / (NZ(ii) + vsize * beta)
         enddo
-        write(*,*) 'p_z: Before Abs'
-        write(*,*) p_z
-        ! this abs() shouldn't have to be here...
-        p_z = abs(p_z)
         p_z = p_z / sum(p_z)
-        write(*,*) 'p_z: After Abs'
-        write(*,*) p_z
+
         ! We need to do something to remove 'bunching' to one topic
         ! since an error happens at genmul is any p_z is > .99
         ! for now, just iterate through, if a p_z is > .99 then

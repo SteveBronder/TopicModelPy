@@ -50,7 +50,7 @@ CONTAINS
               NZW(Z,ll) = NZW(Z,ll) - 1
               NZ(Z) = NZ(Z) - 1
 
-              call  conditional_distribution(matrix,NZW, NZM, NZ, beta, alpha,ntopics,M,N,p_z,j,ll)
+              call  conditional_distribution2(matrix,NZW, NZM, NZ,NM, beta, alpha,ntopics,M,N,p_z,j,ll)
               
               ! genmul only accebts kind = 4 variables
               genp_z = real(p_z,4)
@@ -58,12 +58,16 @@ CONTAINS
               
               ! Trying to smooth these guys out
               ! Also making genZ into array of zeros
+              
+              genZ = 0
+              ! Converting from 8 to 4 kind makes this necessary
               do gg = 1,ntopics
                 genp_z(gg) = abs(genp_z(gg))
                 genZ(gg) = 0
               enddo
-                ! Converting from 8 to 4 kind makes this necessary
-                genp_z = genp_z / sum(genp_z)
+              genZ = 0
+              genp_z = genp_z / sum(genp_z)
+
               ! genmul returns (/0,0,0,1/), a specific realization of one of the multinom
               call genmul(1,abs(genp_z),genntopics,genZ)
               
@@ -102,18 +106,13 @@ CONTAINS
         integer*8,dimension(n,m),intent(in) :: matrix
         integer*8 vsize
         integer*8,intent(in) :: N, M, ntopics,max_iter,i,j
-        integer*8 :: nn,z,mm
+        integer*8 :: z,mm
         integer*8,dimension(ntopics,M),intent(in) :: NZM
         integer*8,dimension(ntopics,N),intent(in) :: NZW
         real*8, intent(in)  :: alpha, beta
         real*8,dimension(max_iter), intent(inout) :: lik
-        vsize = 0
-        do nn = 1,N
-          if (matrix(nn,j) == 0) then
-            cycle
-          endif
-          vsize = vsize + 1
-        enddo
+        
+        vsize = count(matrix(:,j) /= 0)
 
         do z = 1,ntopics
               call log_multinomial_beta(NZW(:,Z) + beta,lik,ntopics,max_iter,i)
@@ -209,6 +208,64 @@ CONTAINS
         enddo
       end
 
+! Conditional Distribution
+
+      subroutine conditional_distribution2(matrix,NZW, NZM, NZ,NM, beta, alpha,ntopics,M,N,p_z,j,ll)
+      IMPLICIT NONE
+        integer*8,intent(in) :: j,ll,M, N,ntopics
+        integer*8 :: ii, aa
+        real*8, intent(inout) :: p_z(ntopics)
+        real*8, intent(in) :: beta
+        real*8, intent(in) :: alpha
+        real*8,dimension(ntopics) :: left
+        real*8,dimension(ntopics) :: right
+        integer*8, dimension(M) :: NM
+        integer*8,dimension(N,M),intent(in) :: matrix
+        integer*8,dimension(ntopics),intent(in) :: NZ
+        integer*8,dimension(ntopics,M),intent(in) :: NZM
+        integer*8,dimension(N,ntopics),intent(in) :: NZW
+        integer*8 vsize
+        
+
+        vsize = count(matrix(:,j) /= 0)
+
+        left = (NZW(ll,:) + beta) / (NZ + beta * vsize)
+
+        right = (NZM(:,j) + alpha) / (NM + alpha * ntopics)
+
+        p_z = left * right
+
+        p_z = p_z / sum(p_z)
+
+        ! We need to do something to remove 'bunching' to one topic
+        ! since an error happens at genmul is any p_z is > .99
+        ! for now, just iterate through, if a p_z is > .99 then
+        ! subtract .01 from p_z(ii) and add .01 to p_z((ii-1))
+
+
+        do ii = 1,ntopics
+          
+          if (0.99E+00 < p_z(ii)) then
+            p_z(ii) = p_z(ii) - .01
+            do aa = 1,ntopics
+              if (ii == aa) then
+                cycle
+              endif
+              p_z(aa) = p_z(aa) + (.01 / (ntopics-1))
+            enddo
+          elseif (.001 > p_z(ii)) then
+            p_z(ii) = p_z(ii) + .01
+            do aa = 1,ntopics
+              if (ii == aa) then
+                cycle
+              endif
+              p_z(aa) = p_z(aa) - (.01 / (ntopics-1))
+            enddo
+          endif
+        enddo
+        
+
+      end
 ! End Conditional Distribution
 END MODULE gibbs_sampler
 
