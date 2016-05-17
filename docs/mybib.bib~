@@ -1,0 +1,196 @@
+@article{Blei:2003:LDA:944919.944937,
+ author = {Blei, David M. and Ng, Andrew Y. and Jordan, Michael I.},
+ title = {Latent Dirichlet Allocation},
+ journal = {J. Mach. Learn. Res.},
+ issue_date = {3/1/2003},
+ volume = {3},
+ month = mar,
+ year = {2003},
+ issn = {1532-4435},
+ pages = {993--1022},
+ numpages = {30},
+ url = {http://dl.acm.org/citation.cfm?id=944919.944937},
+ acmid = {944937},
+ publisher = {JMLR.org},
+} 
+
+@article{Pritchardetal2000, 
+	author = "J K Pritchard and Stephens, M and Donnelly, P",
+ title = "Inference of Population Structure Using Multilocus Genotype Data", 
+	journal = "Genetics",  
+ year = "2000a",
+	volume = "155",
+	pages = "945--959",
+}
+
+@article{citeulike:6744178,
+    abstract = {{The use of simulation for high-dimensional intractable computations has revolutionized applied mathematics. Designing, improving and understanding
+the new tools leads to (and leans on) fascinating mathematics, from representation theory through micro-local analysis.}},
+    author = {Diaconis, Persi},
+    citeulike-article-id = {6744178},
+    citeulike-linkout-0 = {http://dx.doi.org/10.1090/s0273-0979-08-01238-x},
+    day = {20},
+    doi = {10.1090/s0273-0979-08-01238-x},
+    issn = {0273-0979},
+    journal = {Bulletin of the American Mathematical Society},
+    keywords = {markov\_chain\_monte\_carlo},
+    month = nov,
+    number = {2},
+    pages = {179--205},
+    posted-at = {2010-12-12 12:29:52},
+    priority = {2},
+    title = {{The Markov chain Monte Carlo revolution}},
+    url = {http://dx.doi.org/10.1090/s0273-0979-08-01238-x},
+    volume = {46},
+    year = {2008}
+}
+
+@article{10.2307/2685208,
+ ISSN = {00031305},
+ URL = {http://www.jstor.org/stable/2685208},
+ abstract = {Computer-intensive algorithms, such as the Gibbs sampler, have become increasingly popular statistical tools, both in applied and theoretical work. The properties of such algorithms, however, may sometimes not be obvious. Here we give a simple explanation of how and why the Gibbs sampler works. We analytically establish its properties in a simple case and provide insight for more complicated cases. There are also a number of examples.},
+ author = {George Casella, Edward I. George},
+ journal = {The American Statistician},
+ number = {3},
+ pages = {167-174},
+ publisher = {[American Statistical Association, Taylor & Francis, Ltd.]},
+ title = {Explaining the Gibbs Sampler},
+ volume = {46},
+ year = {1992}
+}
+
+@TECHREPORT{Heinrich04parameterestimation,
+    author = {Gregor Heinrich},
+    title = {Parameter estimation for text analysis},
+    institution = {},
+    year = {2004}
+}
+
+@TECHREPORT{Carpenter10integrating,
+    author = {Bob Carpenter},
+    title = {Integrating Out Multinomial Parameters
+in Latent Dirichlet Allocation and Naive Bayes
+for Collapsed Gibbs Sampling},
+    institution = {LingPipe},
+    year = {2010}
+}
+
+@book{Robert:2005:MCS:1051451,
+ author = {Robert, Christian P. and Casella, George},
+ title = {Monte Carlo Statistical Methods (Springer Texts in Statistics)},
+ year = {2005},
+ isbn = {0387212396},
+ publisher = {Springer-Verlag New York, Inc.},
+ address = {Secaucus, NJ, USA},
+} 
+
+@article{10.2307/2288131,
+ ISSN = {01621459},
+ URL = {http://www.jstor.org/stable/2288131},
+ abstract = {This article reviews and interprets recent mathematics of special functions, with emphasis on integral representations of multiple hypergeometric functions. B.C. Carlson's centrally important parameterized functions R and R, initially defined as Dirichlet averages, are expressed as probability-generating functions of mixed multinomial distributions. Various nested families generalizing the Dirichlet distributions are developed for Bayesian inference in multinomial sampling and contingency tables. In the case of many-way tables, this motivates a new generalization of the function R. These distributions are also useful for the modeling of populations of personal probabilities evolving under the process of inference from statistical data. A remarkable new integral identity is adapted from Carlson to represent the moments of quadratic forms under multivariate normal and, more generally, elliptically contoured distributions. This permits the computation of such moments by simple quadrature.},
+ author = {James M. Dickey},
+ journal = {Journal of the American Statistical Association},
+ number = {383},
+ pages = {628-637},
+ publisher = {[American Statistical Association, Taylor & Francis, Ltd.]},
+ title = {Multiple Hypergeometric Functions: Probabilistic Interpretations and Statistical Uses},
+ volume = {78},
+ year = {1983}
+}
+
+
+@INPROCEEDINGS{Geweke92evaluatingthe,
+author = {John Geweke},
+title = {Evaluating the Accuracy of Sampling-Based Approaches to the Calculation of Posterior Moments},
+booktitle = {IN BAYESIAN STATISTICS },
+year = {1992},
+pages = {169--193},
+publisher = {University Press}
+}
+
+@TECHREPORT{Heinrich04parameterestimation,
+    author = {Gregor Heinrich},
+    title = {Parameter estimation for text analysis},
+    institution = {},
+    year = {2004}
+}
+
+@incollection{NIPS2006_3113,
+title = {A Collapsed Variational Bayesian Inference Algorithm for Latent Dirichlet Allocation},
+author = {Yee W. Teh and David Newman and Welling, Max},
+booktitle = {Advances in Neural Information Processing Systems 19},
+editor = {B. Sch\"{o}lkopf and J. C. Platt and T. Hoffman},
+pages = {1353--1360},
+year = {2007},
+publisher = {MIT Press},
+url = {http://papers.nips.cc/paper/3113-a-collapsed-variational-bayesian-inference-algorithm-for-latent-dirichlet-allocation.pdf}
+}
+
+
+@INPROCEEDINGS{Blei04hierarchicaltopic,
+    author = {David M. Blei and Thomas L. Griffiths and Michael I. Jordan and Joshua B. Tenenbaum},
+    title = {Hierarchical Topic Models and the Nested Chinese Restaurant Process},
+    booktitle = {Advances in Neural Information Processing Systems},
+    year = {2004},
+    pages = {2003},
+    publisher = {MIT Press}
+}
+
+@article{DBLP:journals/pami/PaisleyWBJ15,
+  author    = {John William Paisley and
+               Chong Wang and
+               David M. Blei and
+               Michael I. Jordan},
+  title     = {Nested Hierarchical Dirichlet Processes},
+  journal   = {{IEEE} Trans. Pattern Anal. Mach. Intell.},
+  volume    = {37},
+  number    = {2},
+  pages     = {256--270},
+  year      = {2015},
+  url       = {http://dx.doi.org/10.1109/TPAMI.2014.2318728},
+  doi       = {10.1109/TPAMI.2014.2318728},
+  timestamp = {Sat, 12 Mar 2016 09:04:12 +0100},
+  biburl    = {http://dblp.uni-trier.de/rec/bib/journals/pami/PaisleyWBJ15},
+  bibsource = {dblp computer science bibliography, http://dblp.org}
+}
+
+@article{Hoffman:2013:SVI:2502581.2502622,
+ author = {Hoffman, Matthew D. and Blei, David M. and Wang, Chong and Paisley, John},
+ title = {Stochastic Variational Inference},
+ journal = {J. Mach. Learn. Res.},
+ issue_date = {January 2013},
+ volume = {14},
+ number = {1},
+ month = may,
+ year = {2013},
+ issn = {1532-4435},
+ pages = {1303--1347},
+ numpages = {45},
+ url = {http://dl.acm.org/citation.cfm?id=2502581.2502622},
+ acmid = {2502622},
+ publisher = {JMLR.org},
+ keywords = {Bayesian inference, Bayesian nonparametrics, stochastic optimization, topic models, variational inference},
+} 
+
+@article{doi:10.1287/opre.31.6.1109,
+author = {Philip Heidelberger and Peter D. Welch},
+title = {Simulation Run Length Control in the Presence of an Initial Transient},
+journal = {Operations Research},
+volume = {31},
+number = {6},
+pages = {1109-1144},
+year = {1983},
+doi = {10.1287/opre.31.6.1109},
+
+URL = { 
+        http://dx.doi.org/10.1287/opre.31.6.1109
+    
+},
+eprint = { 
+        http://dx.doi.org/10.1287/opre.31.6.1109
+    
+}
+,
+    abstract = { This paper studies the estimation of the steady state mean of an output sequence from a discrete event simulation. It considers the problem of the automatic generation of a confidence interval of prespecified width when there is an initial transient present. It explores a procedure based on Schruben's Brownian bridge model for the detection of nonstationarity and a spectral method for estimating the variance of the sample mean. The procedure is evaluated empirically for a variety of output sequences. The performance measures considered are bias, confidence interval coverage, mean confidence interval width, mean run length, and mean amount of deleted data. If the output sequence contains a strong transient, then inclusion of a test for stationarity in the run length control procedure results in point estimates with lower bias, narrower confidence intervals, and shorter run lengths than when no check for stationarity is performed. If the output sequence contains no initial transient, then the performance measures of the procedure with a stationarity test are only slightly degraded from those of the procedure without such a test. If the run length is short relative to the extent of the initial transient, the stationarity tests may not be powerful enough to detect the transient, resulting in a procedure with unreliable point and interval estimates. }
+}
+

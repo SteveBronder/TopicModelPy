@@ -28,7 +28,10 @@
 \usepackage{algorithm}
 \usepackage[noend]{algpseudocode}
 \usepackage[margin=1.5in]{geometry}
-\usepackage{lmodern}
+\usepackage[english]{babel}
+\usepackage{graphicx}
+\usepackage{longtable}
+
 \newtheorem{theorem}{Theorem}[section]
 \newtheorem{lemma}[theorem]{Lemma}
 \newtheorem{proposition}[theorem]{Proposition}
@@ -93,14 +96,15 @@
 
 \begin{abstract}
   %The purpose of this document is to 
-  Latent Dirichlet Allocation is a two stage hierarchical clustering process that is typically fit through MCMC or variational inference. We discuss how the collapsed Gibbs sampler is derived and implemented, including the method of integrating out multinomial parameters as an example of Rao-Blackwellization. This allows for all samples to be drawn from simple conditional distributions while also supporting the update of each topic distribution after each word is assigned to a particular topic. We illustrate how to perform posterior inference on a collection of documents from JSTOR. We review a few open problems and compare several heuristics to check rates of convergence.  %With regards to Topic Models, integrating out the Multinomial parameters allows for all samples to be drawn from simple discrete distributions while also supporting a Gibbs sampling scheme such that each model is updated after each word is assigned to a particular topic. After theoretical explanations are given, an example of Latent Dirichlet Analysis with a Collapsed Gibbs Sampler will be implemented in Python.
+  Latent Dirichlet Allocation is a two stage hierarchical clustering process that is typically fit through MCMC or variational inference. In this note we describe how the collapsed Gibbs sampler is derived and implemented, including the method of integrating out multinomial parameters as an example of Rao-Blackwellization. This allows for all samples to be drawn from simple conditional distributions while also supporting the update of each topic distribution after each word is assigned to a particular topic. We demonstrate our implementation in Fortran by performing posterior inference on a collection of documents from JSTOR. We review a few open problems and discuss heuristics to check rates of convergence.  %With regards to Topic Models, integrating out the Multinomial parameters allows for all samples to be drawn from simple discrete distributions while also supporting a Gibbs sampling scheme such that each model is updated after each word is assigned to a particular topic. After theoretical explanations are given, an example of Latent Dirichlet Analysis with a Collapsed Gibbs Sampler will be implemented in Python.
   \end{abstract}
 
 \section{Introduction}
-Topic models are a family of unsupervised machine learning methods for summarizing and organizing large collections of documents. Topic models aim to mimic the writing process in which an author draws upon a set of topics based on the focus of the narrative. Words represent various topics and provide clues about the underlying themes that comprise the document. Introduced by Blei in 2003,  Latent Dirichlet Allocation \cite{Blei:2003:LDA:944919.944937} (LDA) has become a widely popular topic model for text processing due to its simplicity. The same model is derived in 2000 by Pritchard for isolating microbial species using genotype data \cite{Pritchardetal2000}. At its core LDA is a two level Bayesian heirarchical model for clustering with hidden factors. Formally, a topic is defined as a hidden probability distribution over a fixed vocabulary. Documents are modeled as mixtures of topic distributions, which in turn are modeled as distributions over words. This two stage hierarchical process supports a soft rather than a hard assignment of each document to multiple topics where words are the only variables observed. \nocite{10.2307/2685208,citeulike:6744178} 
+Topic models are a family of unsupervised machine learning methods for summarizing and organizing large collections of documents. Topic models aim to mimic the writing process in which an author draws upon a set of topics based on the focus of the narrative. Words represent various topics and provide clues about the underlying themes that comprise the document. Introduced by Blei in 2003,  Latent Dirichlet Allocation (LDA) has become a widely popular topic model for text processing due to its simplicity \cite{Blei:2003:LDA:944919.944937}. The same model is derived in 2000 by Pritchard for isolating microbial species using genotype data \cite{Pritchardetal2000}. Pritchard's motivation is to describe the genome of an individual or species as a mixture of various populations. At its core, LDA is a two level Bayesian heirarchical model for clustering with hidden factors. Formally, a topic is defined as a hidden probability distribution over a fixed vocabulary. Documents are modeled as mixtures of topic distributions, which in turn are modeled as distributions over words. This two stage hierarchical structure supports a soft rather than a hard assignment of each document to multiple topics where words are the only variables observed. \nocite{10.2307/2685208,citeulike:6744178} 
 %\nocite{Heinrich04parameterestimation}
 
-\paragraph{Outline} We give a brief description of the LDA model in Section~\ref{sec:ldamodel}. In Section~\ref{sec:inference} we discuss the challenge of posterior inference and motivate the MCMC approach. Section~\ref{sec:gibbs} describes the properties of the Gibbs sampler including the collapsed sampler and Rao Blackwellization. Some mathematical derivations are provided for completeness in Section~\ref{sec:appx}.
+%\paragraph{Outline} 
+In this note we illustrate how to implement the collapsed Gibbs sampler for LDA. The rest of this document is organized as follows. We introduce the LDA model in Section~\ref{sec:ldamodel}. In Section~\ref{sec:inference} we discuss the process of learning parameters and the challenge of posterior inference to motivate the MCMC approach. Section~\ref{sec:gibbs} describes the collapsed Gibbs sampler for LDA as an application of Rao-Blackwellization including a brief summary of the Hammersley-Clifford theorem. We discuss our implementation and experimental results in Section~\ref{sec:implementation}. Section~\ref{sec:conclusion} concludes by briefly addressing a few open questions. Mathematical derivations and basic results are provided for completeness along with output and figures in Section~\ref{sec:appx}.
 
 %\hl{Started with a more academic description of topic models}
 
@@ -108,7 +112,7 @@ Topic models are a family of unsupervised machine learning methods for summarizi
 
 \section{LDA Model}
 \label{sec:ldamodel}
-We introduce some notation in order to state the model. Following Carpenter \cite{Carpenter10integrating}, let $K$ be the number of topics and let $M$ be the number of documents. Let $N_m$ be the number of words in the $m$th document and let $J$ be the distinct number of words in the corpus. Let  $W_{m,n}$ be the observed document term matrix where rows represent documents, columns represent words and the components are the counts of the $n$th word in the $m$th document. Let $Z_{m,n} \in 1:K$ be the topic to which the word of $W_{m,n}$ is assigned. Let $\theta_m \in [0, 1]^K$ be the topic distribution for the $m$th document and $\phi_k \in [0, 1]^J$ be the word distribution for the $k$th topic. The hyperparameter $\alpha \in \mathbb{R}^K$ is a vector of prior counts for topics in documents. Similarly $\beta \in \mathbb{R}^J$ is a vector of prior counts for words in a given topic.
+In order to state the model we will introduce the notation below. Following Carpenter \cite{Carpenter10integrating}, let $K$ be the number of topics and let $M$ be the number of documents. Let $N_m$ be the number of words in the $m$th document and let $J$ be the distinct number of words in the corpus. Let  $W_{m,n}$ be the observed document term matrix where rows represent documents, columns represent words and the components are the counts of the $n$th word in the $m$th document. Let $Z_{m,n} \in 1:K$ be the topic to which the word of $W_{m,n}$ is assigned. Let $\theta_m \in [0, 1]^K$ be the topic distribution for the $m$th document and $\phi_k \in [0, 1]^J$ be the word distribution for the $k$th topic. The hyperparameter $\alpha \in \mathbb{R}^K$ is a vector of prior counts for topics in documents. Similarly $\beta \in \mathbb{R}^J$ is a vector of prior counts for words in a given topic.
 %(\hl{Describe the model as derived in Griffiths or the Blei paper from 2003... }) 
 LDA is defined by the following generative model.
 \begin{enumerate}
@@ -134,9 +138,11 @@ Define $c_{k,m,j}$ to be the count for the number of times word $j$ is assigned 
 \[ c_{k,m,j} = \sum\limits_{n=1}^{Nm}I\Big(z_{m,n} = k \ \& \ w_{m,n} = j \Big) \]
 Note that we can marginalize the distribution of counts over any of the three variables $k, m$ and $j$. For example,
 \[ c_{k,m,*} = \sum\limits_{j=1}^{J}c_{k,m,j} \]
+It will be useful to recast the above using linear algebra. Let NMZ be a matrix of M rows and Z columns whose components denote the number of times document M and topic Z occur together. Similarly, let NZW represent a matrix of Z rows and W columns whose components denote the number of times topic Z and word W interact. Marginalizing the above with respect to W and Z give vectors NM and NZ respectively. 
+
 \section{Posterior Inference for LDA}
 \label{sec:inference}
-In order to compute the posterior distribution and fit an LDA model we must find the conditional distribution of hidden variables given the observations:
+The learning task for LDA is to compute the posterior distribution which is the conditional distribution of hidden variables given the observations:
 \begin{equation}
 P(\theta, z, \phi | w, \alpha, \beta) \propto \prod\limits_{k=1}^{K}p(\phi_k | \beta) \prod\limits_{m=1}^{M}p(\theta_m|\alpha)\prod\limits_{n=1}^{N}p(z_{m,n}|\theta_m)p(w_{m,n}|z_{m,n},\phi_k)
 \end{equation}
@@ -146,11 +152,11 @@ p(\theta|\alpha)\prod\limits_{n=1}^{N}p(z_n|\theta)p(w_n|z_n,\phi_k) \\
 \intertext{In order to ensure that the above is normalized it is necessary to compute the evidence.}
 \int_\theta p(\theta|\alpha)\prod\limits_{n=1}^{N}\sum\limits_{z=1}^{K}p(z_n|\theta)p(w_n|z_n,\phi_k)d\theta
 \end{align}
-We can move the summation outside the integral to obtain the form of the evidence below:
+The above is a hypergeometric function shown by Dickey to be intractable \cite{10.2307/2288131}. One solution is to move the summation outside the integral to obtain the form of the evidence below:
 \begin{equation}
 \sum\limits_{z=1}^{K}\int_\theta p(\theta|\alpha)\prod\limits_{n=1}^{N}p(z_n|\theta)p(w_n|z_n,\phi_k) d\theta
 \end{equation}
-The above is a hypergeometric function shown by Dickey to be intractable \cite{10.2307/2288131}. The simplified posterior is also equivalent to the sum of $N^k$ tractable Dirichlet integrals. Even without considering topics or multiple documents, we are forced to compute an exponential number of Dirichlet integrals. This is often solved through approximate inference such as MCMC or mean field variational methods. 
+The simplified form is equivalent to the sum of $N^k$ tractable Dirichlet integrals, however when k is reasonably large it is not practical to compute the solution exactly. Even without or multiple documents, we are forced to compute an exponential number of Dirichlet integrals. Two solutions include the use of approximate inference algorithms such as MCMC via the Gibbs sampler or variational methods such as mean field variational inference~\cite{NIPS2006_3113}. 
 %\hl{Why is the posterior distribution intractable? Motivate MCMC... }
 %In order to compute the parameters in LDA we must evaluate the posterior distribution:
 %\begin{equation}
@@ -163,13 +169,14 @@ The above is a hypergeometric function shown by Dickey to be intractable \cite{1
 
 \section{The Gibbs Sampler}
 \label{sec:gibbs}
-The MCMC approach builds an irreducible, aperiodic and positive recurrent chain whose stationary distribution is the posterior distribution of interest. The Gibbs sampler then uses the space of all configurations of hidden variables to represent the space of the Markov chain. We can then run the chain by iteratively sampling from the distribution of each hidden variable conditioned on the observations and the current state of each of the other hidden variables. After a suitable burn-in period, we can collect samples to obtain a Monte Carlo estimate of the posterior. 
+MCMC methods exploit the fundamental theorem of Markov chains to sample from an intractible distribution such as (2). The MCMC approach is to design an irreducible, aperiodic and positive recurrent chain whose stationary distribution is the posterior distribution of interest. We will use the space of all configurations of hidden variables to represent the state space of a Markov chain. Recall that the Gibbs sampler approach is to iteratively sample from the distribution of one hidden variable at a time conditioned on the observations and the current state of each of the other hidden variables. After a suitable burn-in period, collecting samples will result in a Monte Carlo estimate of the posterior. 
 
-A naive sampler would condition on all of the hidden variables, however it is possible to integrate out the multinomial parameters for a faster mixing chain. We describe this process in detail in the Appendix. In addition, by using conditional expectations we can improve the variance of the Monte Carlo estimate. 
+A naive sampler would condition on all of the hidden variables, however it is possible to integrate out the multinomial parameters for a faster mixing chain. We summarize the necessary derivations in detail in the Appendix. We note here that by using conditional expectations we can improve the variance of the Monte Carlo estimate. 
 \begin{equation}
     Var(\mathbb{E}[\delta(X)|Y]) \leq Var(\delta(X))
 \end{equation}
-We review some basic properties of the Gibbs sampler and Rao-Blackwellization below. We wish to show that the support of the joint distribution $f$ is the Cartesian product of marginal distributions. \nocite{Robert:2005:MCS:1051451}
+We review some basic properties of the Gibbs sampler and Rao-Blackwellization below. %We wish to show that the support of the joint distribution $f$ is the Cartesian product of marginal distributions. 
+\nocite{Robert:2005:MCS:1051451}
 \begin{definition}
 The positivity condition for a joint distribution $f(X_1,\cdots, X_p)$ with marginal densities $f_{X_i}(x_i)$ is satisfied if the following holds: $f_{X_i}(x_i) > 0$ for all $(X_1,\cdots, X_p)$ implies that $f(X_1,\cdots, X_p) > 0$.
 \end{definition}
@@ -194,7 +201,7 @@ f(X_1,\cdots, X_p) \propto \prod\limits_{i=1}^{P} \frac{f_{X_i} | X_{-i}(X_i | X
 &= f(X_1,\cdots, X_p)\frac{f_{X_p}(X_p | Y_1, \cdots Y_p)}{f_{X_p}(Y_p | Y_1, \cdots Y_{p})} \cdots \frac{f_{X_p}(X_p | X_1, \cdots X_{p-1})}{f_{X_p}(Y_p | X_1, \cdots X_{p-1})}
 \end{align}
 \end{proof}
-In order to make use of Rao-Blackwellization, we require the joint distribution to be uniquely specified by conditional distributions. Recall that this is a property of the LDA graphical model by construction.
+\noindent The Hammersley-Clifford theorem specifies when a distribution can be factorized in terms of cliques. In order to make use of Rao-Blackwellization for the Gibbs sampler, we require the joint distribution to be uniquely specified by conditional distributions. 
 %Theorem \ref{thm:hc} demonstates that the conditional distributions we are interested in sampling from are non-zero. We require like the joint distribution to be uniquely specified by conditional distributions, however this is by construction from the graphical model. Sampling from the conditional distributions then generates a Markov chain whose stationary distribution is the posterior of interest. 
 \begin{lemma}
 The transition probability matrix of the Gibbs sampler is 
@@ -210,26 +217,181 @@ P(X^t \in \mathcal{X} | X^{t-1} = x^{t-1}) &= \int_\mathcal{X} f_{X_t | X_{t-1}}
     &\qquad \qquad \qquad \times \cdots \times f_{X_p | X_{-p} }(x_p^t | x_1^{t}, x_{p_1}^{t}, \cdots x_{p}^{t-1}) dx^t
 \end{align}
 \end{proof}
-
 %\hl{Brief review of MCMC and gibbs sampling... }
 There are two rules that are required to create an MCMC sampler, one to propose how to move from $x$ to $y$, and another rule to accept that move as the new position. In the context of the Gibbs sampler, suppose the stationary distribution \textbf{$X$}$=(X_1,\ldots,X_d)$ is 
-
 \begin{equation}
     \pi(X_1,\ldots,X_d) = g(X_1,X_2,\ldots,X_d)/ \kappa
 \end{equation}
-
-where $\kappa$ is a normalizing constant. Given the current value $\mathbf{x}=(x_1,x_2,\ldots,x_d)$, for the next move we follow the steps below.
+\noindent where $\kappa$ is a normalizing constant. Given the current value $\mathbf{x}=(x_1,x_2,\ldots,x_d)$, for the next move we follow the steps below.
 \begin{enumerate}
     \item Assign $J\sim U(1,2,\ldots,n)$.
     \item Sample $X_j$ with the proposal distribution $\pi(\tilde{x}_J|x_1,\ldots,x_{J-1},x_{J+1},\ldots,x_d)$ where $\tilde{x}_J$ is our proposed move from the first rule. 
 \end{enumerate}
-
-Unlike some MCMC samplers, the Gibbs sampler accepts this next move with probability one. The conditional distribution used for Gibbs sampling is given below and derived in the Appendix:
+\noindent Unlike some MCMC samplers, the Gibbs sampler accepts this next move with probability one. The update equation for the onditional distribution used for Gibbs sampling is given below according to (32) derived in the Appendix:
 \begin{equation}
 p(z_{a,b}|z_{-(a,b)},y,\alpha,\beta) = \frac{\nicefrac{(\alpha_{z_{a,b}}+ c+_{z_{a,b},a,*}^{-(a,b)})\times(\beta_{y_{a,b}}+c_{z_{a,b},a,*}^{-(a,b)})}{(J \times \beta_j + c_{z_{a,b},*,*}^{-(a,b)})}}{\sum_{k=1}^{K}\nicefrac{(\alpha_{z_{a,b}}+ c+_{z_{a,b},a,*}^{-(a,b)})\times(\beta_{y_{a,b}}+c_{z_{a,b},a,*}^{-(a,b)})}{(J \times \beta_j + c_{z_{a,b},*,*}^{-(a,b)})}}
 \end{equation}
 
 \section{Implementation and Experimental Results}
+\label{sec:implementation}
+The implementation of the collapsed Gibbs sampler is relatively simple and described in detail in Algorithm 1. High level pseudocode can be found in Heinrich~\cite{Heinrich04parameterestimation}. During initialization, a random topic is assigned for each word of each document and the corresponding counts in the matrices NMZ, NM, NZ and NZW are incremented. The Gibbs sampler itself proceeds as follows. For each iteration, document, and every word in the document, matrices representing the counts by document and topic as well as word and topic are decremented. Then, the probability of moving to another topic is selected, and a realization is made from a multinomial distribution as the new topic for that word. The new topic is then added to document and word count matrices. Due to the large amount of looping necessary in the algorithm an implementation was developed in Fortran 95 as higher level languages such as Python or matlab could not satisfy time constraints when working with large matrices\footnote{The code and Python notebook associated with this research can be found at \url{https://github.com/stevo15025/topicmodelpy}}.
+
+Data was gathered on 200 journal entries submitted to the Journal of the American Statistical Association. Word counts for journal entries were made available by JSTOR's Data for Research program. With five topics selected, the topic model ran over the document term matrix for 30,000 iterations, burning in the first 18,000 iterations. Performing Geweke's \cite{Geweke92evaluatingthe} diagnostic test on the likelihood, as seen in figure 1, with the first window being at the tenth percentile and the second window at the fiftieth yielded a t-score of 1.504, enough to feel satisfied that the model has converged after this many iterations. Investigating the chain using Heidel's criterion \cite{doi:10.1287/opre.31.6.1109}  we receive a p-value for the stationarity test of .191 and pass the half-width test, which means we do not reject the null hypothesis of stationarity and have enough samples to accurately estimate the mean. 
+
+\begin{table}[!ht]
+\centering
+\caption{The top 10 words for each topic}
+\begin{tabular}{rlllll}
+  \hline
+ & Topic 1 & Topic 2 & Topic 3 & Topic 4 & Topic 5 \\ 
+  \hline
+1 & inconsistent & hildreth & adapted & zin & presumably \\ 
+  2 & ext & affects & snedecor & harvey & stop \\ 
+  3 & algebra & ath & exposition & pooled & paired \\ 
+  4 & advantages & lag & gets & eliminate & indicators \\ 
+  5 & benjamin & requiring & averaging & diagram & exception \\ 
+  6 & thompson & heuristic & bls & singular & computable \\ 
+  7 & continues & classified & mcleod & load & locally \\ 
+  8 & sectors & alternatively & anything & lhs & markets \\ 
+  9 & width & cal & marvin & carlin & empirically \\ 
+  10 & originally & lot & payments & friedman & adler \\ 
+   \hline
+\end{tabular}
+\end{table}
+
+Table one shows the top 10 words for each topic. We can see that each topic tends to follow a pattern in the statistical literature. For instance, topic three is associated with words about approximation while topic four requires linear algebra and singular value decomposition. We can also see topic five may hold words associated with econometrics.
+
+Tables two through five in the appendix show the articles that have the highest probability of being in each topic. Note how topic one seems to be comprised of topics on sampling procedures and estimating significance. One thing we see in all topics is how frequent back matter, letters to the editor, and book reviews matter. This may be due to these papers in particular journals summing up large breaths of what was popular at that particular time in statistical literature. Also note that some articles such as "Exact Distribution of the Sum of Independent Identically Distributed Discrete Random Variables" appear multiple times. This is due to the probabilistic nature of the topic model algorithm. As each article has a certain probability of being in a topic, some articles will be general enough to fit in one or more topics.
+
+
+
+
+
+\section{Conclusion and Future Work}
+\label{sec:conclusion}
+%\hl{outline a few open questions / areas of active research wrt Gibbs sampler}
+
+One important area of research that has not seen much focus is dealing with memory issues when study convergence properties for these large models. At every iteration of a topic model you receive back two matrices, one of size documents by topics and another by topics and words. If you have one thousand documents and thirty thousand words it is very easily to run into memory out of bounds errors as only 10 iterations can take up a significant portion of memory. Implementing chunking methods as well as online models for the convergence procedure, for instance an online ARMA model, to reduce memory consumption would allow researchers to investigate convergence properties of these models much more clearly.
+
+Another open question about MCMC methods concerns whether or not theoretical bounds can be constructed that address how long to run the chain. Rates of convergence between the transition kernel and the stationary distribution $K^n(x,y) \rightarrow \pi$ are usually measured by total variation distance:
+\begin{equation}
+\|K_x^n - \pi \|_{TV} = \frac{1}{2}\sum_y | K^n(x,y) - \pi(y)| = \max_{A \subseteq \mathcal{X}} |K^n(x,A) - \pi(A) |
+\end{equation}
+A natural question is whether or not we can derive eigenvalue bounds on rates of convergence by using a reversible chain Gibbs sampler. Note that the Gibbs sampler implemented here is not reversible. That is, $\pi(x)K(x,y) \neq \pi(y)K(y,x)$. Liu (1995) describes the following reversible chain:
+\begin{enumerate}
+    \item Sample an index $j$ uniformly form the distribution on $\{1, \cdots, p\}$
+    \item Sample $X_j^{(t)} \sim f_{X_j |X_{-j}}(\cdot | X_1^{(t-1)},\cdots, X_{j-1}^{(t-1)},  X_{j+1}^{(t-1)}, \cdot  X_{p}^{(t-1)})$ setting $X_i^{(t)}=X_i^{(t-1)}$ $\forall i \neq j$.
+\end{enumerate}
+For the reversible case, $Kg(x) = \sum g(y)K(x,y)$ and so the Markov kernel is a self adjoint operator $\langle Kg, h\rangle = \langle g, Kh\rangle$. We can then factorize the transition kernel using a spectral decomposition. Let $\psi_i$ be the eigenvectors and $\beta_i$ be the corresponding eigenvalues such that $K\psi_i = \beta\psi_i$ for $0 \leq i \leq |\mathcal{X}|-1$:
+\begin{equation}
+K(x,y) = \pi(y) \sum\limits_{i=0}^{|\mathcal{X}|-1}\beta_i\psi_i(x)\psi_i(y) \qquad K^n(x,y) = \pi(y) \sum\limits_{i=0}^{|\mathcal{X}|-1}\beta_i^n\psi_i(x)\psi_i(y)
+\end{equation}
+Diaconis shows that we can derive an eigenvalue bound using the Cauchy-Schwartz inequality:
+\begin{equation}
+4\|K^n_x - \pi \|^2_{TV} \leq \sum\limits_{y}^{} \frac{(K^n(x,y) - \pi(y))^2}{\pi(y)} = \sum\limits_{i=0}^{|\mathcal{X}|-1}\beta_i^{2n}\psi_i^2(x)
+\end{equation}
+Several other heuristics exist for MCMC convergence rates and NLP models. Two examples the perplexity score which is a function of entropy and quantifies how well a distribution fits a sample $2^{H(p)} = 2^{-\sum p(x) log p(x)}$, and the Gelman-Rubin test. In future work we wish to explore various criteria for model convergence. 
+
+One approach that is not discussed here is that of variational inference. The idea here is to select a family of distributions over the hidden variables and to find corresponding parameters that make the variational parameters as close as possible to the posterior. This often involves minimizing the KL divergence between the two distributions. Naturally there is a nice parallel and intuitive analogy with the EM algorithm. A good discussion of this approach is given by Hoffman~\cite{Hoffman:2013:SVI:2502581.2502622}. LDA has also been expanded in an attempt to automatically learn topic heirarchies to model increasingly complex phenomena. Several approaches have been proposed that draw on the theory of the distribution of random partitions known as Chinese restuarant processes. For an interesting discussion of the above the reader is referred to the following work by Paisley~\cite{DBLP:journals/pami/PaisleyWBJ15} and Blei~\cite{Blei04hierarchicaltopic}.
+
+%\small
+\bibliography{mybib}{}
+\bibliographystyle{plain}
+\clearpage
+\section{Appendix}
+\label{sec:appx}
+\subsection{Integrating out Multinomial Parameters}
+\begin{align}
+    &\int \int p(\theta | \alpha)p(z|\theta) p(w|z, \phi)p(\phi | \beta) d\theta d\phi \\
+    \intertext{The joint distribution factorizes based on dependencies specified by the graphical model.}
+    &=\int p(\theta | \alpha)p(z|\theta)d\theta \int p(w|z, \phi)p(\phi | \beta) d\phi \\
+    \intertext{Take the product over documents and topics and replace the conditional probabilities with the Multinomial and Dirichlet distributions.}
+    &= \prod_{m=1}^M \int \frac{\Gamma(\sum \alpha_k)}{\prod \Gamma(\alpha_k)} \prod_{k=1}^{K} \theta^{\alpha_k-1}\prod_{n=1}^{Nm} \theta^{c_{k,m,*}} d\theta \prod_{k=1}^{K} \int \frac{\Gamma(\sum \beta_j)}{\prod \Gamma(\beta_j)} \prod_{j=1}^{J} \phi^{\beta_j-1}\prod_{m=1}^{M} \prod_{n=1}^{Nm} \phi^{c_{k,*,j}} d\phi \\
+    \intertext{Rewrite the above exploiting the congucacy between prior and posterior.} 
+        &= \prod_{m=1}^M \int \frac{\Gamma(\sum \alpha_k)}{\prod \Gamma(\alpha_k)} \prod_{k=1}^{K} \theta^{\alpha_k + c_{k,m,*}-1} d\theta \prod_{k=1}^{K} \int \frac{\Gamma(\sum \beta_j)}{\prod \Gamma(\beta_j)} \prod_{j=1}^{J} \phi^{\beta_j + c_{k,*,j}-1} d\phi \\
+    \intertext{Note that both integrals are unnormalized Dirichlets. Multiply by the normalization constant and its reciprocal to cancel both integrals as they evaluate to 1 by definition.}
+        %&= \prod_{m=1}^M \int \frac{\Gamma(\sum \alpha_k)}{\prod \Gamma(\alpha_k)} \prod_{k=1}^{K} \theta^{\alpha_k + c_{k,m,*}-1} d\theta \prod_{k=1}^{K} \int \frac{\Gamma(\sum \beta_j)}{\prod \Gamma(\beta_j)} \prod_{j=1}^{J} \phi^{\beta_j + c_{k,*,j}-1} d\phi \\
+        &= \prod_{m=1}^M \frac{\Gamma(\sum \alpha_k)}{\prod \Gamma(\alpha_k)}\frac{\prod \Gamma(\alpha_k + c_{k,m,*})}{\Gamma(\sum \alpha_k + c_{k,m,*})} \prod_{k=1}^{K} \frac{\Gamma(\sum \beta_j)}{\prod \Gamma(\beta_j)} \frac{\prod \Gamma(\beta_j + c_{k,*,j})}{\Gamma(\sum \beta_j + c_{k,*,j}) } \\
+    \intertext{Drop terms that do not depend on the distribution over counts $c_{k,m,j}$}
+        &\propto \prod_{m=1}^M \frac{\prod \Gamma(\alpha_k + c_{k,m,*})}{\Gamma(\sum \alpha_k + c_{k,m,*})} \prod_{k=1}^{K} \frac{\prod \Gamma(\beta_j + c_{k,*,j})}{\Gamma(\sum \beta_j + c_{k,*,j}) } \\
+    \intertext{Split the product over documents and topics including/excluding the $(a,b)$th component.}
+        &= \prod_{m \neq a}^{}\frac{\prod \Gamma(\alpha_k + c_{k,m,*})}{\Gamma(\sum \alpha_k + c_{k,m,*})}\frac{\prod \Gamma(\alpha_k + c_{k,a,*})}{\Gamma(\sum \alpha_k + c_{k,a,*})} \times \prod_{k=1}^k \frac{\prod_{j\neq y_{a,b}}^{}\Gamma(\beta_j + c_{k,*,j}) \Gamma(\beta_{y_{ab}} + c_{k,*,y_{a,b}})}{\Gamma(\sum \beta_j + c_{k,*,j}) } \\
+    \intertext{Drop terms that do not depend on current position (a,b)}
+        &\propto \frac{\prod_{k=1}^{K}\Gamma(\alpha_k + c_{k,a,*})}{\Gamma(\sum_{k=1}^{K}\alpha_k + c_{k,a,*})} \prod_{k=1}^{K}\frac{\Gamma(\beta_{y_{ab}}+ c_{k,*,y_{ab}})}{\Gamma(\sum \beta_j + c_{k,*,j})} \\
+    \intertext{Split the product over topics including/excluding the $c^{a,b}$th component}
+        &\propto \frac{\prod_{k \neq z_{ab}}^{} \Gamma(\alpha_k + c_{k,a,*}^{-(a,b)}) \times \Gamma(\alpha_{z_{a,b}}+ c_{z_{a,b},a,*}^{-(a,b)})}{\Gamma(1+ \sum \alpha_k + c_{k,a,*}^{-(a,b)})} \\
+        \nonumber &\qquad \qquad \times \prod_{k\neq z_{a,b}}^{K}\frac{\Gamma(\beta_{y_{a,b}}+ c_{k,*,y_{a,b}}^{-(a,b)})}{\Gamma(\sum \beta_j + c_{k,*,j})} \frac{\Gamma(\beta_{y_{a,b}}+c_{z_{a,b},*,y_{a,b}}^{-(a,b)}+1)}{\Gamma(1+\sum \beta_j + c_{z_{a,b},*,j}^{-(a,b)})} \\
+    \intertext{Use the fact that that $\Gamma(x+1) = x\Gamma(x)$}
+        &= \frac{\prod_{k \neq z_{a,b}}^{} \Gamma(\alpha_k + c_{k,a,*}^{-(a,b)})\Gamma(\alpha_{z_{a,b}}+c_{z_{a,b},a,*}^{-(a,b)})(\alpha_{z_{a,b}}+c_{z_{a,b},a,*}^{-(a,b)})}{\Gamma(1+\sum \alpha_k + c_{k,a,*}^{-(a,b)})} \\
+        \nonumber &\qquad \qquad \times \prod_{k\neq z_{a,b}}^{} \frac{\Gamma(\beta_{y_{a,b}}+c_{k,*,y_{a,b}}^{-(a,b)})}{\Gamma(\sum \beta_j + c_{k,*,j})} \frac{\Gamma(\beta_{y_{a,b}}+c_{z_{a,b},*,y_{a,b}}^{-(a,b)})}{\Gamma(\sum \beta_j + c_{z_{a,b},*,j}^{-(a,b)})} \frac{(\beta_{y_{a,b}}+c_{z_{a,b},*,y_{a,b}}^{-(a,b)})}{\sum (\beta_j + c_{z_{a,b},*,j}^{-(a,b)})} \\
+    \intertext{Combine the $\Gamma$ terms back into the product:}
+        &= \frac{\prod_{k=1}^{K}\Gamma(\alpha_k + c_{k,a,*}^{-(a,b)})(\alpha_{z_{a,b}}+c_{z_{a,b},*,y_{a,b}}^{-(a,b)})}{\Gamma(1+\sum \alpha_k + c_{k,a,*}^{-(a,b)})} \\
+        \nonumber &\qquad \qquad \qquad \qquad \times \prod_{k=1}^{K}\frac{\Gamma(\beta_{y_{a,b}}+c_{k,*,y_{a,b}}^{-(a,b)})}{\Gamma(\sum \beta_j + c_{z_{a,b},*,j}^{-(a,b)})}\frac{(\beta_{y_{a,b}}+ c_{z_{a,b},*,y_{a,b}}^{-(a,b)})}{\sum(\beta_j + c_{z_{a,b},*,j}^{-(a,b)})} \\
+    \intertext{Drop the topic denominator and general product terms which are constant:}
+        %&= \frac{\prod_{k=1}^{k}\Gamma(\alpha_k + c_{k,a,*}^{-(a,b)})\times (\alpha_{z_{a,b}} + c_{z_{a,b},a,*}^{-(a,b)})}{\Gamma(1+\sum \alpha_k + c_{k,a,*}^{-(a,b)})} \\
+        %\nonumber &\qquad \qquad \times \prod_{k=1}^{K}\frac{\Gamma(\beta_{y_{a,b}}+c_{k,*,y_{a,b}}^{-(a,b)})}{\Gamma(\sum \beta_j + c_{k,*,j})} \frac{\beta_{y_{a,b}} +c_{z_{a,b},*,y_{a,b}}^{-(a,b)}}{\sum(\beta_j + c_{z_{a,b},*,j}^{-(a,b)})} \\
+    %\intertext{}
+        &\propto \frac{(\alpha_{z_{a,b}}+ c+_{z_{a,b},a,*}^{-(a,b)})\times(\beta_{y_{a,b}}+c_{z_{a,b},a,*}^{-(a,b)})}{\sum(\beta_j + c_{z_{a,b},*,j}^{-(a,b)})} = \frac{(\alpha_{z_{a,b}}+ c_{z_{a,b},a,*}^{-(a,b)})\times(\beta_{y_{a,b}}+c_{z_{a,b},a,*}^{-(a,b)})}{\sum(\beta_j) + c_{z_{a,b},*,*}^{-(a,b)}}
+\end{align}
+The conditional distribution used for Gibbs sampling is given by normalizing the result above:
+\begin{equation}
+p(z_{a,b}|z_{-(a,b)},y,\alpha,\beta) = \frac{\nicefrac{(\alpha_{z_{a,b}}+ c_{z_{a,b},a,*}^{-(a,b)})\times(\beta_{y_{a,b}}+c_{z_{a,b},a,*}^{-(a,b)})}{(J \times \beta_j + c_{z_{a,b},*,*}^{-(a,b)})}}{\sum_{k=1}^{K}\nicefrac{(\alpha_{z_{a,b}}+ c_{z_{a,b},a,*}^{-(a,b)})\times(\beta_{y_{a,b}}+c_{z_{a,b},a,*}^{-(a,b)})}{(J \times \beta_j + c_{z_{a,b},*,*}^{-(a,b)})}}
+\end{equation}
+
+\subsection{The Gamma, Beta and Dirichlet Redux}
+Euler would introduce the useful function below. 
+\[\Gamma(x) = \int\limits_{0}^{\infty}t^{x-1}e^{-t}dt = 2\int\limits_{0}^{\infty}u^{2x-1}e^{-u^2}du \]
+Substituting $t = u^2$ and evaluating $x = 1/2$ gives the Euler-Poisson integral. 
+\[\Gamma(\nicefrac{1}{2}) = 2\int\limits_{0}^{\infty}e^{-u^2}du = \sqrt{\pi}\]
+Using integration by parts it is easy to see $\Gamma(x+1) = x\Gamma(x)$ and thus $\Gamma(x+1) = x!$ when $x$ is an integer. 
+\begin{align*}
+\Gamma(n) &= \int\limits_{0}^{\infty}e^{-x}x^{n-1}dx \\
+\Gamma(n+1) &= \int\limits_{0}^{\infty}e^{-x}x^{n}dx \\
+\intertext{Let $u=x^n, du = nx^{n-1}$, $dv=e^{-x}$ and $v=-e^{-x}$}
+&= -x^{n}e^{-x}\Big|_0^{\infty} - \int\limits_{0}^{\infty}-e^{-x}nx^{n-1}dx \\
+&= n \int\limits_{0}^{\infty}e^{-x}x^{n-1}dx = n\Gamma(n) \\
+%\end{align*}
+\intertext{Euler found that by using the Gamma function we can define the Beta function:}
+\frac{\Gamma(x)\Gamma(y)}{\Gamma(x+y)} &= B(x,y) = \int\limits_{0}^{1}t^{a-1} (1-t)^{b-1}dt \\
+\intertext{The beta is constructed using Gamma functions of two variables. The Gamma function can be used to derive the Beta. Perform the substitution $t = sin^2(\theta)$:}
+%\begin{proofs}
+%\begin{align*}
+B(x,y) &= \int\limits_{0}^{1}t^{x-1}(1-t)^{y-1}dt 
+\\&= \int \limits_{0}^{\pi/2}sin(t)^{2x-1}cos(t)^{2y-1}dt = B(y,x)\\
+\Gamma(x)\Gamma(y) &= 4 \int\limits_{0}^{\infty}u^{2x-1}e^{-u^2}du\int\limits_{0}^{\infty}v^{2y-1}e^{-v^2}dv \\
+&= 4 \int\limits_{0}^{\infty}\int\limits_{0}^{\infty}e^{-(u^2+v^2)}u^{2x-1}v^{2y-1}du dv \\
+%\end{align*}
+%\end{proofs}
+\intertext{Let $u = r \ cos (\theta)$  and $v = r \ sin (\theta)$:}
+%\begin{align*}
+&= 4 \int\limits_{0}^{\infty}\int\limits_{0}^{\pi/2}e^{-r^2}r^{2(x+y)-1}cos^{2x-1}(\theta)sin^{2y-1}(\theta) dr d\theta \\
+&= 2 \int\limits_{0}^{\infty}r^{2(x+y)-1}e^{-r^2}dr \times 2\int\limits_{0}^{\pi/2}cos^{2x-1}(\theta)sin^{2y-1}(\theta) d\theta \\
+\Gamma(x)\Gamma(y)&= \Gamma(x+y)B(y,x) \\
+\frac{\Gamma(x)\Gamma(y)}{\Gamma(x+y)} &= B(y,x)
+\end{align*}
+\qed
+
+%\end{proofs}
+Recall that the Dirichlet is constructed from Gamma functions of $d$ variables:
+\begin{equation*}
+p(x|\alpha) = \frac{\Gamma(\sum_i \alpha_i)}{\prod_i \Gamma(\alpha_i)}\prod\limits_{i=1}^{d}x_i^{\alpha_i-1}
+\end{equation*}
+The Dirichlet distribution is the conjugate prior to the Multinomial. Note the similar functional form. 
+\begin{align*}
+posterior &\propto likelihood \times prior \\
+&= \frac{\Gamma(n+1)}{\prod \Gamma(x_i+1)} \prod\limits_{i=1}^{K}p_i^{x_i}\frac{\Gamma(\sum \alpha_i)}{\prod \Gamma(\alpha_i)}\prod\limits_{}^{}x_i^{\alpha_i-1} \\
+&\propto \prod_{y_i}\prod_{j=1}^{K}p_j^{y_i^{(j)}}\prod\limits_{j=1}^{K} p_j^{\alpha_j-1}\\
+&= \prod\limits_{j=1}^{K} p_j^{\alpha_j-1 + \sum y_i^{(j)}}\\
+&= Dir(a_j + \sum y_i)
+\end{align*}
+The posterior is again a Dirichlet random variable whose new parameters are increased by the sum of the multinomial parameters.
+
+
+\begin{figure}[h]
+  \caption{Likelihood Over Sampled Iterations}
+  \centering
+    \includegraphics[width=1\textwidth]{Likelihood}
+\end{figure}
 
 \begin{algorithm}
 \caption{Topic Model Procedure}\label{euclid}
@@ -280,121 +442,124 @@ p(z_{a,b}|z_{-(a,b)},y,\alpha,\beta) = \frac{\nicefrac{(\alpha_{z_{a,b}}+ c+_{z_
 \State   \EndFor
 \State  \EndFor
 \State \EndFor
+\State Phi = NZM / sum(NZM,by='cols')
+\State Theta = NZW / sum(NZW,by='rows')
 \EndProcedure
 \end{algorithmic}
 \end{algorithm}
 
-\hl{need to discuss our implementation and results...}
 
-\hl{describe functions for sampling from multinomial and dirichlet distributions, and the actual gibbs sampler function that builds a chain by incrementing/decrementing each of the hidden variables conditioned on all of the observed and remaining hidden variables}
+\begin{table}[ht]
+\centering
+\caption{Articles in Topic One}
+\begin{tabular}{rl}
+  \hline
+ & Topic One \\ 
+  \hline
+1 & A Test for Significance in a Unique Sample \\ 
+  2 & Volume Information \\ 
+  3 & Letter to the Editor \\ 
+  4 & Selective Service's Medical Statistics Program \\ 
+  5 & Analysis of Coarsely Grouped Data from the Lognormal Distribution \\ 
+  6 & Sub-Balanced Data and the Mixed Analysis of Variance \\ 
+  7 & On Variance Estimation With Imputed Survey Data: Rejoinder \\ 
+  8 & Exact Distribution of the Sum of Independent Identically Distributed Discrete Random Variables \\ 
+  9 & Back Matter \\ 
+  10 & Note on Estimating Significance of a Number of Samples \\ 
+   \hline
+\end{tabular}
+\end{table}
 
-\section{Open Questions}
-\hl{outline a few open questions / areas of active research wrt Gibbs sampler}
 
-Rates of convergence between $K^n(x,y) \rightarrow \pi$ usually measured by total variation distance
-\begin{equation}
-\|K_x^n - \pi \|_{TV} = \frac{1}{2}\sum_y | K^n(x,y) - \pi(y)| = \max_{A \subseteq \mathcal{X}} |K^n(x,A) - \pi(A) |
-\end{equation}
+\begin{table}[ht]
+\centering
+\caption{Articles in Topic Two}
+\begin{tabular}{rl}
+  \hline
+ & Topic Two \\ 
+  \hline
+1 & Bayesian Approach to Life Testing and Reliability Estimation \\ 
+  2 & Inadmissibility of the Usual Scale Estimate for a Shifted Exponential Distribution \\ 
+  3 & [List of Book Reviews] \\ 
+  4 & Progress of Work in the Census Bureau \\ 
+  5 & Nomographs for ... Differences Between the Frequencies of Events in Two Contrasted Series or Groups \\ 
+  6 & Estimating Population Size with Exponential Failure \\ 
+  7 & Missing Observations in Multivariate Statistics. III: Large Sample Analysis of Simple Linear Regression \\ 
+  8 & Self-Calibrating Priors Do Not Exist: Comment \\ 
+  9 & Wage Rates and Per Capita Productivity \\ 
+  10 & A Method of Appraising Short-Term Forecasts \\ 
+   \hline
+\end{tabular}
+\end{table}
 
-... can we derive eigenvalue bounds on rates of convergence by using a reversible chain Gibbs sampler (described by Liu 1995)?
 
-\begin{enumerate}
-    \item Sample an index $j$ uniformly form the distribution on $\{1, \cdots, p\}$
-    \item Sample $X_j^{(t)} \sim f_{X_j |X_{-j}}(\cdot | X_1^{(t-1)},\cdots, X_{j-1}^{(t-1)},  X_{j+1}^{(t-1)}, \cdot  X_{p}^{(t-1)})$ setting $X_i^{(t)}=X_i^{(t-1)}$ $\forall i \neq j$.
-\end{enumerate}
+\begin{table}[ht]
+\centering
+\caption{Articles in Topic Three}
+\begin{tabular}{rl}
+  \hline
+ & Topic Three \\ 
+  \hline
+1 & Committee on Nominations \\ 
+  2 & Back Matter \\ 
+  3 & Miscellaneous Notes \\ 
+  4 & On Non-Negative Quadratic Unbiased Estimation of Variance Components \\ 
+  5 & Corrections: Comment on "Semi-Parametric Nonlinear Mixed-Effects Models and Their Application" \\ 
+  6 & Notes About Authors \\ 
+  7 & [List of Book Reviews] \\ 
+  8 & Self-Calibrating Priors Do Not Exist: Comment \\ 
+  9 & The Revised Index of the Volume of Trade \\ 
+  10 & Calculation of Chi-Square for Complex Contingency Tables \\ 
+   \hline
+\end{tabular}
+\end{table}
+
+\begin{table}[ht]
+\centering
+\caption{Articles in Topic Four}
+\begin{tabular}{rl}
+  \hline
+ & Topic Four \\ 
+  \hline
+1 & Exact Distribution of the Sum of Independent Identically Distributed Discrete Random Variables \\ 
+  2 & Notes About Authors \\ 
+  3 &  A Stochastic Analysis of the Size Distribution of Firms \\ 
+  4 &  Bayesian Approach to Life Testing and Reliability Estimation \\ 
+  5 & Index of Book Reviewers \\ 
+  6 & Note on Estimating Significance of a Number of Samples \\ 
+  7 & Diversity as a Concept and its Measurement: Rejoinder \\ 
+  8 & [List of Book Reviews] \\ 
+  9 & Committee on Nominations \\ 
+  10 & A Two-Stage Minimax Procedure for Selecting the Normal Population with the Smallest Variance \\ 
+   \hline
+\end{tabular}
+\end{table}
 
 
-%\small
-\bibliography{mybib}{}
-\bibliographystyle{plain}
-\clearpage
-\section{Appendix}
-\label{sec:appx}
-\subsection{Integrating out Multinomial Parameters}
-\begin{align}
-    &\int \int p(\theta | \alpha)p(z|\theta) p(w|z, \phi)p(\phi | \beta) d\theta d\phi \\
-    \intertext{The joint distribution factorizes based on dependencies specified by the graphical model.}
-    &=\int p(\theta | \alpha)p(z|\theta)d\theta \int p(w|z, \phi)p(\phi | \beta) d\phi \\
-    \intertext{Take the product over documents and topics and replace the conditional probabilities with the Multinomial and Dirichlet distributions.}
-    &= \prod_{m=1}^M \int \frac{\Gamma(\sum \alpha_k)}{\prod \Gamma(\alpha_k)} \prod_{k=1}^{K} \theta^{\alpha_k-1}\prod_{n=1}^{Nm} \theta^{c_{k,m,*}} d\theta \prod_{k=1}^{K} \int \frac{\Gamma(\sum \beta_j)}{\prod \Gamma(\beta_j)} \prod_{j=1}^{J} \phi^{\beta_j-1}\prod_{m=1}^{M} \prod_{n=1}^{Nm} \phi^{c_{k,*,j}} d\phi \\
-    \intertext{Rewrite the above exploiting the congucacy between prior and posterior.} 
-        &= \prod_{m=1}^M \int \frac{\Gamma(\sum \alpha_k)}{\prod \Gamma(\alpha_k)} \prod_{k=1}^{K} \theta^{\alpha_k + c_{k,m,*}-1} d\theta \prod_{k=1}^{K} \int \frac{\Gamma(\sum \beta_j)}{\prod \Gamma(\beta_j)} \prod_{j=1}^{J} \phi^{\beta_j + c_{k,*,j}-1} d\phi \\
-    \intertext{Note that both integrals are unnormalized Dirichlets. Multiply by the normalization constant and its reciprocal to cancel both integrals as they evaluate to 1 by definition.}
-        %&= \prod_{m=1}^M \int \frac{\Gamma(\sum \alpha_k)}{\prod \Gamma(\alpha_k)} \prod_{k=1}^{K} \theta^{\alpha_k + c_{k,m,*}-1} d\theta \prod_{k=1}^{K} \int \frac{\Gamma(\sum \beta_j)}{\prod \Gamma(\beta_j)} \prod_{j=1}^{J} \phi^{\beta_j + c_{k,*,j}-1} d\phi \\
-        &= \prod_{m=1}^M \frac{\Gamma(\sum \alpha_k)}{\prod \Gamma(\alpha_k)}\frac{\prod \Gamma(\alpha_k + c_{k,m,*})}{\Gamma(\sum \alpha_k + c_{k,m,*})} \prod_{k=1}^{K} \frac{\Gamma(\sum \beta_j)}{\prod \Gamma(\beta_j)} \frac{\prod \Gamma(\beta_j + c_{k,*,j})}{\Gamma(\sum \beta_j + c_{k,*,j}) } \\
-    \intertext{Drop terms that do not depend on the distribution over counts $c_{k,m,j}$}
-        &\propto \prod_{m=1}^M \frac{\prod \Gamma(\alpha_k + c_{k,m,*})}{\Gamma(\sum \alpha_k + c_{k,m,*})} \prod_{k=1}^{K} \frac{\prod \Gamma(\beta_j + c_{k,*,j})}{\Gamma(\sum \beta_j + c_{k,*,j}) } \\
-    \intertext{Split the product over documents and topics including/excluding the $(a,b)$th component.}
-        &= \prod_{m \neq a}^{}\frac{\prod \Gamma(\alpha_k + c_{k,m,*})}{\Gamma(\sum \alpha_k + c_{k,m,*})}\frac{\prod \Gamma(\alpha_k + c_{k,a,*})}{\Gamma(\sum \alpha_k + c_{k,a,*})} \times \prod_{k=1}^k \frac{\prod_{j\neq y_{a,b}}^{}\Gamma(\beta_j + c_{k,*,j}) \Gamma(\beta_{y_{ab}} + c_{k,*,y_{a,b}})}{\Gamma(\sum \beta_j + c_{k,*,j}) } \\
-    \intertext{Drop terms that do not depend on current position (a,b)}
-        &\propto \frac{\prod_{k=1}^{K}\Gamma(\alpha_k + c_{k,a,*})}{\Gamma(\sum_{k=1}^{K}\alpha_k + c_{k,a,*})} \prod_{k=1}^{K}\frac{\Gamma(\beta_{y_{ab}}+ c_{k,*,y_{ab}})}{\Gamma(\sum \beta_j + c_{k,*,j})} \\
-    \intertext{Split the product over topics including/excluding the $c^{a,b}$th component}
-        &\propto \frac{\prod_{k \neq z_{ab}}^{} \Gamma(\alpha_k + c_{k,a,*}^{-(a,b)}) \times \Gamma(\alpha_{z_{a,b}}+ c_{z_{a,b},a,*}^{-(a,b)})}{\Gamma(1+ \sum \alpha_k + c_{k,a,*}^{-(a,b)})} \\
-        \nonumber &\qquad \qquad \times \prod_{k\neq z_{a,b}}^{K}\frac{\Gamma(\beta_{y_{a,b}}+ c_{k,*,y_{a,b}}^{-(a,b)})}{\Gamma(\sum \beta_j + c_{k,*,j})} \frac{\Gamma(\beta_{y_{a,b}}+c_{z_{a,b},*,y_{a,b}}^{-(a,b)}+1)}{\Gamma(1+\sum \beta_j + c_{z_{a,b},*,j}^{-(a,b)})} \\
-    \intertext{Use the fact that that $\Gamma(x+1) = x\Gamma(x)$}
-        &= \frac{\prod_{k \neq z_{a,b}}^{} \Gamma(\alpha_k + c_{k,a,*}^{-(a,b)})\Gamma(\alpha_{z_{a,b}}+c_{z_{a,b},a,*}^{-(a,b)})(\alpha_{z_{a,b}}+c_{z_{a,b},a,*}^{-(a,b)})}{\Gamma(1+\sum \alpha_k + c_{k,a,*}^{-(a,b)})} \\
-        \nonumber &\qquad \qquad \times \prod_{k\neq z_{a,b}}^{} \frac{\Gamma(\beta_{y_{a,b}}+c_{k,*,y_{a,b}}^{-(a,b)})}{\Gamma(\sum \beta_j + c_{k,*,j})} \frac{\Gamma(\beta_{y_{a,b}}+c_{z_{a,b},*,y_{a,b}}^{-(a,b)})}{\Gamma(\sum \beta_j + c_{z_{a,b},*,j}^{-(a,b)})} \frac{(\beta_{y_{a,b}}+c_{z_{a,b},*,y_{a,b}}^{-(a,b)})}{\sum (\beta_j + c_{z_{a,b},*,j}^{-(a,b)})} \\
-    \intertext{Combine the $\Gamma$ terms back into the product:}
-        &= \frac{\prod_{k=1}^{K}\Gamma(\alpha_k + c_{k,a,*}^{-(a,b)})(\alpha_{z_{a,b}}+c_{z_{a,b},*,y_{a,b}}^{-(a,b)})}{\Gamma(1+\sum \alpha_k + c_{k,a,*}^{-(a,b)})} \\
-        \nonumber &\qquad \qquad \qquad \qquad \times \prod_{k=1}^{K}\frac{\Gamma(\beta_{y_{a,b}}+c_{k,*,y_{a,b}}^{-(a,b)})}{\Gamma(\sum \beta_j + c_{z_{a,b},*,j}^{-(a,b)})}\frac{(\beta_{y_{a,b}}+ c_{z_{a,b},*,y_{a,b}}^{-(a,b)})}{\sum(\beta_j + c_{z_{a,b},*,j}^{-(a,b)})} \\
-    \intertext{Drop the topic denominator and general product terms which are constant:}
-        %&= \frac{\prod_{k=1}^{k}\Gamma(\alpha_k + c_{k,a,*}^{-(a,b)})\times (\alpha_{z_{a,b}} + c_{z_{a,b},a,*}^{-(a,b)})}{\Gamma(1+\sum \alpha_k + c_{k,a,*}^{-(a,b)})} \\
-        %\nonumber &\qquad \qquad \times \prod_{k=1}^{K}\frac{\Gamma(\beta_{y_{a,b}}+c_{k,*,y_{a,b}}^{-(a,b)})}{\Gamma(\sum \beta_j + c_{k,*,j})} \frac{\beta_{y_{a,b}} +c_{z_{a,b},*,y_{a,b}}^{-(a,b)}}{\sum(\beta_j + c_{z_{a,b},*,j}^{-(a,b)})} \\
-    %\intertext{}
-        &\propto \frac{(\alpha_{z_{a,b}}+ c+_{z_{a,b},a,*}^{-(a,b)})\times(\beta_{y_{a,b}}+c_{z_{a,b},a,*}^{-(a,b)})}{\sum(\beta_j + c_{z_{a,b},*,j}^{-(a,b)})} = \frac{(\alpha_{z_{a,b}}+ c+_{z_{a,b},a,*}^{-(a,b)})\times(\beta_{y_{a,b}}+c_{z_{a,b},a,*}^{-(a,b)})}{\sum(\beta_j) + c_{z_{a,b},*,*}^{-(a,b)}}
-\end{align}
-The conditional distribution used for Gibbs sampling is given by normalizing the result above:
-\begin{equation}
-p(z_{a,b}|z_{-(a,b)},y,\alpha,\beta) = \frac{\nicefrac{(\alpha_{z_{a,b}}+ c+_{z_{a,b},a,*}^{-(a,b)})\times(\beta_{y_{a,b}}+c_{z_{a,b},a,*}^{-(a,b)})}{(J \times \beta_j + c_{z_{a,b},*,*}^{-(a,b)})}}{\sum_{k=1}^{K}\nicefrac{(\alpha_{z_{a,b}}+ c+_{z_{a,b},a,*}^{-(a,b)})\times(\beta_{y_{a,b}}+c_{z_{a,b},a,*}^{-(a,b)})}{(J \times \beta_j + c_{z_{a,b},*,*}^{-(a,b)})}}
-\end{equation}
+% latex table generated in R 3.2.3 by xtable 1.8-0 package
+% Mon May 16 15:50:35 2016
 
-\subsection{The Gamma, Beta and Dirichlet Function Redux}
-Euler would introduce the useful function below. 
-\[\Gamma(x) = \int\limits_{0}^{\infty}t^{x-1}e^{-t}dt = 2\int\limits_{0}^{\infty}u^{2x-1}e^{-u^2}du \]
-Substituting $t = u^2$ and evaluating $x = 1/2$ gives the Euler-Poisson integral. 
-\[\Gamma(\nicefrac{1}{2}) = 2\int\limits_{0}^{\infty}e^{-u^2}du = \sqrt{\pi}\]
-Using integration by parts it is easy to see $\Gamma(x+1) = x\Gamma(x)$ and thus $\Gamma(x+1) = x!$ when $x$ is an integer. 
-\begin{align*}
-\Gamma(n) &= \int\limits_{0}^{\infty}e^{-x}x^{n-1}dx \\
-\Gamma(n+1) &= \int\limits_{0}^{\infty}e^{-x}x^{n}dx \\
-\intertext{Let $u=x^n, du = nx^{n-1}$, $dv=e^{-x}$ and $v=-e^{-x}$}
-&= -x^{n}e^{-x}\Big|_0^{\infty} - \int\limits_{0}^{\infty}-e^{-x}nx^{n-1}dx \\
-&= n \int\limits_{0}^{\infty}e^{-x}x^{n-1}dx = n\Gamma(n) \\
-%\end{align*}
-\intertext{Euler found that by using the Gamma function we can define the Beta function:}
-\frac{\Gamma(x)\Gamma(y)}{\Gamma(x+y)} &= B(x,y) = \int\limits_{0}^{1}t^{a-1} (1-t)^{b-1}dt \\
-\intertext{The beta is constructed using Gamma functions of two variables. The Gamma function can be used to derive the Beta. Perform the substitution $t = sin^2(\theta)$:}
-%\begin{proofs}
-%\begin{align*}
-B(x,y) &= \int\limits_{0}^{1}t^{x-1}(1-t)^{y-1}dt 
-\\&= \int \limits_{0}^{\pi/2}sin(t)^{2x-1}cos(t)^{2y-1}dt = B(y,x)\\
-\Gamma(x)\Gamma(y) &= 4 \int\limits_{0}^{\infty}u^{2x-1}e^{-u^2}du\int\limits_{0}^{\infty}v^{2y-1}e^{-v^2}dv \\
-&= 4 \int\limits_{0}^{\infty}\int\limits_{0}^{\infty}e^{-(u^2+v^2)}u^{2x-1}v^{2y-1}du dv \\
-%\end{align*}
-%\end{proofs}
-\intertext{Let $u = r \ cos (\theta)$  and $v = r \ sin (\theta)$:}
-%\begin{align*}
-&= 4 \int\limits_{0}^{\infty}\int\limits_{0}^{\pi/2}e^{-r^2}r^{2(x+y)-1}cos^{2x-1}(\theta)sin^{2y-1}(\theta) dr d\theta \\
-&= 2 \int\limits_{0}^{\infty}r^{2(x+y)-1}e^{-r^2}dr \times 2\int\limits_{0}^{\pi/2}cos^{2x-1}(\theta)sin^{2y-1}(\theta) d\theta \\
-\Gamma(x)\Gamma(y)&= \Gamma(x+y)B(y,x) \\
-\frac{\Gamma(x)\Gamma(y)}{\Gamma(x+y)} &= B(y,x)
-\end{align*}
-\qed
+\begin{table}[ht]
+\centering
+\caption{Articles in Topic Five}
+\begin{tabular}{rl}
+  \hline
+ & Topic 5 \\ 
+  \hline
+1 &  Exact Distribution of the Sum of Independent Identically Distributed Discrete Random Variables \\ 
+  2 & [List of Book Reviews] \\ 
+  3 &  A Stochastic Analysis of the Size Distribution of Firms \\ 
+  4 & Committee on Nominations \\ 
+  5 & Notes About Authors \\ 
+  6 & Letter to the Editor \\ 
+  7 & A Test for Extreme Value Domain of Attraction \\ 
+  8 & Estimates of Bounded Relative Error for the Ratio of Variances of Normal Distributions \\ 
+  9 & Progress of Work in the Census Bureau \\ 
+  10 & Continuous Sequential Testing of a Poisson Process to Minimize the Bayes Risk \\ 
+   \hline
+\end{tabular}
+\end{table}
 
-%\end{proofs}
-Recall that the Dirichlet is constructed from Gamma functions of $d$ variables:
-\begin{equation*}
-p(x|\alpha) = \frac{\Gamma(\sum_i \alpha_i)}{\prod_i \Gamma(\alpha_i)}\prod\limits_{i=1}^{d}x_i^{\alpha_i-1}
-\end{equation*}
-The Dirichlet distribution is the conjugate prior to the Multinomial. Note the similar functional form. 
-\begin{align*}
-posterior &\propto likelihood \times prior \\
-&= \frac{\Gamma(n+1)}{\prod \Gamma(x_i+1)} \prod\limits_{i=1}^{K}p_i^{x_i}\frac{\Gamma(\sum \alpha_i)}{\prod \Gamma(\alpha_i)}\prod\limits_{}^{}x_i^{\alpha_i-1} \\
-&\propto \prod_{y_i}\prod_{j=1}^{K}p_j^{y_i^{(j)}}\prod\limits_{j=1}^{K} p_j^{\alpha_j-1}\\
-&= \prod\limits_{j=1}^{K} p_j^{\alpha_j-1 + \sum y_i^{(j)}}\\
-&= Dir(a_j + \sum y_i)
-\end{align*}
-The posterior is again a Dirichlet random variable whose new parameters are increased by the sum of the multinomial parameters.
 
 %\subsection{Fundamental Theorem of Markov Chains}
 %\hl{Review some basic properties of markov chains including ergodic thm}
