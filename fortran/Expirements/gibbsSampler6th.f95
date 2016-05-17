@@ -146,7 +146,7 @@ CONTAINS
       subroutine conditional_distribution2(matrix,NZW, NZM, NZ,NM, beta, alpha,ntopics,M,N,p_z,j,ll)
       IMPLICIT NONE
         integer*8,intent(in) :: j,ll,M, N,ntopics
-        integer*8 :: ii, aa
+        integer*8 :: ii, aa,jk
         real*8, intent(inout) :: p_z(ntopics)
         real*8, intent(in) :: beta
         real*8, intent(in) :: alpha

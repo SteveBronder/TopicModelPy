@@ -1426,14 +1426,14 @@ function r4_uni_01 ( )
 !
 !  Parameters:
 !
-!    Output, real ( kind = 8 ) R4_UNI_01, a uniform random value in [0,1].
+!    Output, real ( kind = 4 ) R4_UNI_01, a uniform random value in [0,1].
 !
   implicit none
 
   integer ( kind = 4 ) i
   integer ( kind = 4 ) i4_uni
   logical initialized_get
-  real ( kind = 8 ) r4_uni_01
+  real ( kind = 4 ) r4_uni_01
 !
 !  Check whether the package must be initialized.
 !
@@ -1450,7 +1450,7 @@ function r4_uni_01 ( )
 !
 !  Scale it to a random real in [0,1].
 !
-  r4_uni_01 = real ( i, kind = 8 ) * 4.656613057E-10
+  r4_uni_01 = real ( i, kind = 4 ) * 4.656613057E-10
 
   return
 end

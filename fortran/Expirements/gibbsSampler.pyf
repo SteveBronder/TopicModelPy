@@ -1,0 +1,55 @@
+!    -*- f90 -*-
+! Note: the context of this file is case sensitive.
+
+python module gibbsSampler ! in 
+    interface  ! in :gibbsSampler
+        module gibbs_sampler ! in :gibbsSampler:gibbsSampler.f95
+            subroutine gibbssampler(matrix,nzw,nzm,nz,nm,ntopics,max_iter,m,n,p_z,topics,topics2) ! in :gibbsSampler:gibbsSampler.f95:gibbs_sampler
+                integer dimension(m,n) :: matrix
+                integer dimension(n,ntopics),depend(n) :: nzw
+                integer dimension(ntopics,m),depend(ntopics,m) :: nzm
+                integer dimension(ntopics),depend(ntopics) :: nz
+                integer dimension(m),depend(m) :: nm
+                integer, optional,check(shape(nzw,1)==ntopics),depend(nzw) :: ntopics=shape(nzw,1)
+                integer :: max_iter
+                integer, optional,check(shape(matrix,0)==m),depend(matrix) :: m=shape(matrix,0)
+                integer, optional,check(shape(matrix,1)==n),depend(matrix) :: n=shape(matrix,1)
+                real*4 dimension(ntopics),depend(ntopics) :: p_z
+                integer dimension(m,n),depend(m,n) :: topics
+                integer dimension(m,n),depend(m,n) :: topics2
+            end subroutine gibbssampler
+            subroutine loglikelihood(nzw,nzm,alpha,beta,ntopics,n,m,lik) ! in :gibbsSampler:gibbsSampler.f95:gibbs_sampler
+                real*4 dimension(m,ntopics) :: nzw
+                real*4 dimension(ntopics,m),depend(ntopics,m) :: nzm
+                real*4 :: alpha
+                real*4 :: beta
+                integer, optional,check(shape(nzw,1)==ntopics),depend(nzw) :: ntopics=shape(nzw,1)
+                integer :: n
+                integer, optional,check(shape(nzw,0)==m),depend(nzw) :: m=shape(nzw,0)
+                real*4 :: lik
+            end subroutine loglikelihood
+            subroutine log_multinomial_beta(alpha,k,lik) ! in :gibbsSampler:gibbsSampler.f95:gibbs_sampler
+                real*4 dimension(:) :: alpha
+                integer :: k
+                real*4 :: lik
+            end subroutine log_multinomial_beta
+            subroutine conditional_distribution(matrix,nzw,nz,nm,beta,alpha,ntopics,m,n,p_z,j,ll) ! in :gibbsSampler:gibbsSampler.f95:gibbs_sampler
+                integer dimension(m,n) :: matrix
+                integer dimension(n,ntopics),depend(n) :: nzw
+                integer dimension(ntopics),depend(ntopics) :: nz
+                integer dimension(m),depend(m) :: nm
+                real*4 :: beta
+                real*4 :: alpha
+                integer, optional,check(shape(nzw,1)==ntopics),depend(nzw) :: ntopics=shape(nzw,1)
+                integer, optional,check(shape(matrix,0)==m),depend(matrix) :: m=shape(matrix,0)
+                integer, optional,check(shape(matrix,1)==n),depend(matrix) :: n=shape(matrix,1)
+                real*4 dimension(ntopics),depend(ntopics) :: p_z
+                integer :: j
+                integer :: ll
+            end subroutine conditional_distribution
+        end module gibbs_sampler
+    end interface 
+end python module gibbsSampler
+
+! This file was auto-generated with f2py (version:2).
+! See http://cens.ioc.ee/projects/f2py2e/

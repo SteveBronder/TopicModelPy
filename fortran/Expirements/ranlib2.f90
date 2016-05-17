@@ -33,40 +33,40 @@ function genbet ( aa, bb )
 !
 !  Parameters:
 !
-!    Input, real ( kind = 8 ) AA, the first parameter of the beta distribution.
+!    Input, real ( kind = 4 ) AA, the first parameter of the beta distribution.
 !    0.0 < AA.
 !
-!    Input, real ( kind = 8 ) BB, the second parameter of the beta distribution.
+!    Input, real ( kind = 4 ) BB, the second parameter of the beta distribution.
 !    0.0 < BB.
 !
-!    Output, real ( kind = 8 ) GENBET, a beta random variate.
+!    Output, real ( kind = 4 ) GENBET, a beta random variate.
 !
   implicit none
 
-  real ( kind = 8 ) a
-  real ( kind = 8 ) aa
-  real ( kind = 8 ) alpha
-  real ( kind = 8 ) b
-  real ( kind = 8 ) bb
-  real ( kind = 8 ) beta
-  real ( kind = 8 ) delta
-  real ( kind = 8 ) gamma
-  real ( kind = 8 ) genbet
-  real ( kind = 8 ) k1
-  real ( kind = 8 ) k2
-  real ( kind = 8 ), parameter :: log4 = 1.3862943611198906188E+00
-  real ( kind = 8 ), parameter :: log5 = 1.6094379124341003746E+00
-  real ( kind = 8 ) r
-  real ( kind = 8 ) r4_exp
-  real ( kind = 8 ) r4_uni_01
-  real ( kind = 8 ) s
-  real ( kind = 8 ) t
-  real ( kind = 8 ) u1
-  real ( kind = 8 ) u2
-  real ( kind = 8 ) v
-  real ( kind = 8 ) w
-  real ( kind = 8 ) y
-  real ( kind = 8 ) z
+  real ( kind = 4 ) a
+  real ( kind = 4 ) aa
+  real ( kind = 4 ) alpha
+  real ( kind = 4 ) b
+  real ( kind = 4 ) bb
+  real ( kind = 4 ) beta
+  real ( kind = 4 ) delta
+  real ( kind = 4 ) gamma
+  real ( kind = 4 ) genbet
+  real ( kind = 4 ) k1
+  real ( kind = 4 ) k2
+  real ( kind = 4 ), parameter :: log4 = 1.3862943611198906188E+00
+  real ( kind = 4 ), parameter :: log5 = 1.6094379124341003746E+00
+  real ( kind = 4 ) r
+  real ( kind = 4 ) r4_exp
+  real ( kind = 4 ) r4_uni_01
+  real ( kind = 4 ) s
+  real ( kind = 4 ) t
+  real ( kind = 4 ) u1
+  real ( kind = 4 ) u2
+  real ( kind = 4 ) v
+  real ( kind = 4 ) w
+  real ( kind = 4 ) y
+  real ( kind = 4 ) z
 
   if ( aa <= 0.0E+00 ) then
     write ( *, '(a)' ) ' '
@@ -220,18 +220,18 @@ function genchi ( df )
 !
 !  Parameters:
 !
-!    Input, real ( kind = 8 ) DF, the degrees of freedom.
+!    Input, real ( kind = 4 ) DF, the degrees of freedom.
 !    0.0 < DF.
 !
-!    Output, real ( kind = 8 ) GENCHI, a random deviate from the distribution.
+!    Output, real ( kind = 4 ) GENCHI, a random deviate from the distribution.
 !
   implicit none
 
-  real ( kind = 8 ) arg1
-  real ( kind = 8 ) arg2
-  real ( kind = 8 ) df
-  real ( kind = 8 ) genchi
-  real ( kind = 8 ) gengam
+  real ( kind = 4 ) arg1
+  real ( kind = 4 ) arg2
+  real ( kind = 4 ) df
+  real ( kind = 4 ) genchi
+  real ( kind = 4 ) gengam
 
   if ( df <= 0.0E+00 ) then
     write ( *, '(a)' ) ' '
@@ -284,16 +284,16 @@ function genexp ( av )
 !
 !  Parameters:
 !
-!    Input, real ( kind = 8 ) AV, the mean of the exponential distribution 
+!    Input, real ( kind = 4 ) AV, the mean of the exponential distribution 
 !    from which a random deviate is to be generated.
 !
-!    Output, real ( kind = 8 ) GENEXP, a random deviate from the distribution.
+!    Output, real ( kind = 4 ) GENEXP, a random deviate from the distribution.
 !
   implicit none
 
-  real ( kind = 8 ) av
-  real ( kind = 8 ) genexp
-  real ( kind = 8 ) sexpo
+  real ( kind = 4 ) av
+  real ( kind = 4 ) genexp
+  real ( kind = 4 ) sexpo
 
   genexp = sexpo ( ) * av
 
@@ -328,22 +328,22 @@ function genf ( dfn, dfd )
 !
 !  Parameters:
 !
-!    Input, real ( kind = 8 ) DFN, the numerator degrees of freedom.
+!    Input, real ( kind = 4 ) DFN, the numerator degrees of freedom.
 !    0.0 < DFN.
 !
-!    Input, real ( kind = 8 ) DFD, the denominator degrees of freedom.
+!    Input, real ( kind = 4 ) DFD, the denominator degrees of freedom.
 !    0.0 < DFD.
 !
-!    Output, real ( kind = 8 ) GENF, a random deviate from the distribution.
+!    Output, real ( kind = 4 ) GENF, a random deviate from the distribution.
 !
   implicit none
 
-  real ( kind = 8 ) dfd
-  real ( kind = 8 ) dfn
-  real ( kind = 8 ) genchi
-  real ( kind = 8 ) genf
-  real ( kind = 8 ) xden
-  real ( kind = 8 ) xnum
+  real ( kind = 4 ) dfd
+  real ( kind = 4 ) dfn
+  real ( kind = 4 ) genchi
+  real ( kind = 4 ) genf
+  real ( kind = 4 ) xden
+  real ( kind = 4 ) xnum
 
   if ( dfn <= 0.0E+00 ) then
     write ( *, '(a)' ) ' '
@@ -404,18 +404,18 @@ function gengam ( a, r )
 !
 !  Parameters:
 !
-!    Input, real ( kind = 8 ) A, the location parameter.
+!    Input, real ( kind = 4 ) A, the location parameter.
 !
-!    Input, real ( kind = 8 ) R, the shape parameter.
+!    Input, real ( kind = 4 ) R, the shape parameter.
 !
-!    Output, real ( kind = 8 ) GENGAM, a random deviate from the distribution.
+!    Output, real ( kind = 4 ) GENGAM, a random deviate from the distribution.
 !
   implicit none
 
-  real ( kind = 8 ) a
-  real ( kind = 8 ) gengam
-  real ( kind = 8 ) r
-  real ( kind = 8 ) sgamma
+  real ( kind = 4 ) a
+  real ( kind = 4 ) gengam
+  real ( kind = 4 ) r
+  real ( kind = 4 ) sgamma
 
   gengam = sgamma ( r ) / a
 
@@ -457,23 +457,23 @@ subroutine genmn ( parm, x, work )
 !
 !  Parameters:
 !
-!    Input, real ( kind = 8 ) PARM(P*(P+3)/2+1), parameters set by SETGMN.
+!    Input, real ( kind = 4 ) PARM(P*(P+3)/2+1), parameters set by SETGMN.
 !
-!    Output, real ( kind = 8 ) X(P), a random deviate from the distribution.
+!    Output, real ( kind = 4 ) X(P), a random deviate from the distribution.
 !
-!    Workspace, real ( kind = 8 ) WORK(P).
+!    Workspace, real ( kind = 4 ) WORK(P).
 !
   implicit none
 
-  real ( kind = 8 ) ae
+  real ( kind = 4 ) ae
   integer ( kind = 4 ) i
   integer ( kind = 4 ) icount
   integer ( kind = 4 ) j
   integer ( kind = 4 ) p
-  real ( kind = 8 ) parm(*)
-  real ( kind = 8 ) snorm
-  real ( kind = 8 ) work(*)
-  real ( kind = 8 ) x(*)
+  real ( kind = 4 ) parm(*)
+  real ( kind = 4 ) snorm
+  real ( kind = 4 ) work(*)
+  real ( kind = 4 ) x(*)
 
   p = int ( parm(1) )
 !
@@ -531,7 +531,7 @@ subroutine genmul ( n, p, ncat, ix )
 !    Input, integer ( kind = 4 ) N, the number of events, which will be
 !    classified into one of the NCAT categories.
 !
-!    Input, real ( kind = 8 ) P(NCAT-1).  P(I) is the probability that an event
+!    Input, real ( kind = 4 ) P(NCAT-1).  P(I) is the probability that an event
 !    will be classified into category I.  Thus, each P(I) must be between 
 !    0.0 and 1.0.  Only the first NCAT-1 values of P must be defined since 
 !    P(NCAT) would be 1.0 minus the sum of the first NCAT-1 P's.
@@ -552,9 +552,9 @@ subroutine genmul ( n, p, ncat, ix )
   integer ( kind = 4 ) ignbin
   integer ( kind = 4 ) ix(ncat)
   integer ( kind = 4 ) ntot
-  real ( kind = 8 ) p(ncat-1)
-  real ( kind = 8 ) prob
-  real ( kind = 8 ) ptot
+  real ( kind = 4 ) p(ncat-1)
+  real ( kind = 4 ) prob
+  real ( kind = 4 ) ptot
 
   if ( n < 0 ) then
     write ( *, '(a)' ) ' '
@@ -588,12 +588,12 @@ subroutine genmul ( n, p, ncat, ix )
 
   end do
 
-  ptot = 0.0d+00
+  ptot = 0.0E+00
   do i = 1, ncat - 1
     ptot = ptot + p(i)
   end do
 
-  if ( 1.0d0 < ptot ) then
+  if ( 0.99999E+00 < ptot ) then
     write ( *, '(a)' ) ' '
     write ( *, '(a)' ) 'GENMUL - Fatal error!'
     write ( *, '(a)' ) '  1 < Sum of P().'
@@ -663,26 +663,26 @@ function gennch ( df, xnonc )
 !
 !  Parameters:
 !
-!    Input, real ( kind = 8 ) DF, the degrees of freedom.
+!    Input, real ( kind = 4 ) DF, the degrees of freedom.
 !    1.0 < DF.
 !
-!    Input, real ( kind = 8 ) XNONC, the noncentrality parameter.
+!    Input, real ( kind = 4 ) XNONC, the noncentrality parameter.
 !    0.0 <= XNONC.
 !
-!    Output, real ( kind = 8 ) GENNCH, a random deviate from the distribution.
+!    Output, real ( kind = 4 ) GENNCH, a random deviate from the distribution.
 !
   implicit none
 
-  real ( kind = 8 ) arg1
-  real ( kind = 8 ) arg2
-  real ( kind = 8 ) arg3
-  real ( kind = 8 ) df
-  real ( kind = 8 ) genchi
-  real ( kind = 8 ) gennch
-  real ( kind = 8 ) gennor
-  real ( kind = 8 ) t1
-  real ( kind = 8 ) t2
-  real ( kind = 8 ) xnonc
+  real ( kind = 4 ) arg1
+  real ( kind = 4 ) arg2
+  real ( kind = 4 ) arg3
+  real ( kind = 4 ) df
+  real ( kind = 4 ) genchi
+  real ( kind = 4 ) gennch
+  real ( kind = 4 ) gennor
+  real ( kind = 4 ) t1
+  real ( kind = 4 ) t2
+  real ( kind = 4 ) xnonc
 
   if ( df <= 1.0E+00 ) then
     write ( *, '(a)' ) ' '
@@ -740,27 +740,27 @@ function gennf ( dfn, dfd, xnonc )
 !
 !  Parameters:
 !
-!    Input, real ( kind = 8 ) DFN, the numerator degrees of freedom.
+!    Input, real ( kind = 4 ) DFN, the numerator degrees of freedom.
 !    1.0 < DFN.
 !
-!    Input, real ( kind = 8 ) DFD, the denominator degrees of freedom.
+!    Input, real ( kind = 4 ) DFD, the denominator degrees of freedom.
 !    0.0 < DFD.
 !
-!    Input, real ( kind = 8 ) XNONC, the noncentrality parameter.
+!    Input, real ( kind = 4 ) XNONC, the noncentrality parameter.
 !    0.0 <= XNONC.
 !
-!    Output, real ( kind = 8 ) GENNF, a random deviate from the distribution.
+!    Output, real ( kind = 4 ) GENNF, a random deviate from the distribution.
 !
   implicit none
 
-  real ( kind = 8 ) dfd
-  real ( kind = 8 ) dfn
-  real ( kind = 8 ) genchi
-  real ( kind = 8 ) gennch
-  real ( kind = 8 ) gennf
-  real ( kind = 8 ) xden
-  real ( kind = 8 ) xnonc
-  real ( kind = 8 ) xnum
+  real ( kind = 4 ) dfd
+  real ( kind = 4 ) dfn
+  real ( kind = 4 ) genchi
+  real ( kind = 4 ) gennch
+  real ( kind = 4 ) gennf
+  real ( kind = 4 ) xden
+  real ( kind = 4 ) xnonc
+  real ( kind = 4 ) xnum
 
   if ( dfn <= 1.0E+00 ) then
     write ( *, '(a)' ) ' '
@@ -824,18 +824,18 @@ function gennor ( av, sd )
 !
 !  Parameters:
 !
-!    Input, real ( kind = 8 ) AV, the mean.
+!    Input, real ( kind = 4 ) AV, the mean.
 !
-!    Input, real ( kind = 8 ) SD, the standard deviation.
+!    Input, real ( kind = 4 ) SD, the standard deviation.
 !
-!    Output, real ( kind = 8 ) GENNOR, a random deviate from the distribution.
+!    Output, real ( kind = 4 ) GENNOR, a random deviate from the distribution.
 !
   implicit none
 
-  real ( kind = 8 ) av
-  real ( kind = 8 ) gennor
-  real ( kind = 8 ) sd
-  real ( kind = 8 ) snorm
+  real ( kind = 4 ) av
+  real ( kind = 4 ) gennor
+  real ( kind = 4 ) sd
+  real ( kind = 4 ) snorm
 
   gennor = sd * snorm ( ) + av
 
@@ -916,16 +916,16 @@ function genunf ( low, high )
 !
 !  Parameters:
 !
-!    Input, real ( kind = 8 ) LOW, HIGH, the lower and upper bounds.
+!    Input, real ( kind = 4 ) LOW, HIGH, the lower and upper bounds.
 !
-!    Output, real ( kind = 8 ) GENUNF, a random deviate from the distribution.
+!    Output, real ( kind = 4 ) GENUNF, a random deviate from the distribution.
 !
   implicit none
 
-  real ( kind = 8 ) genunf
-  real ( kind = 8 ) high
-  real ( kind = 8 ) low
-  real ( kind = 8 ) r4_uni_01
+  real ( kind = 4 ) genunf
+  real ( kind = 4 ) high
+  real ( kind = 4 ) low
+  real ( kind = 4 ) r4_uni_01
 
   genunf = low + ( high - low ) * r4_uni_01 ( )
 
@@ -975,7 +975,7 @@ function ignbin ( n, pp )
 !    random deviate will be generated.
 !    0 < N.
 !
-!    Input, real ( kind = 8 ) PP, the probability of an event in each trial of
+!    Input, real ( kind = 4 ) PP, the probability of an event in each trial of
 !    the binomial distribution from which a random deviate is to be generated.
 !    0.0 < PP < 1.0.
 !
@@ -984,16 +984,16 @@ function ignbin ( n, pp )
 !
   implicit none
 
-  real ( kind = 8 ) al
-  real ( kind = 8 ) alv
-  real ( kind = 8 ) amaxp
-  real ( kind = 8 ) c
-  real ( kind = 8 ) f
-  real ( kind = 8 ) f1
-  real ( kind = 8 ) f2
-  real ( kind = 8 ) ffm
-  real ( kind = 8 ) fm
-  real ( kind = 8 ) g
+  real ( kind = 4 ) al
+  real ( kind = 4 ) alv
+  real ( kind = 4 ) amaxp
+  real ( kind = 4 ) c
+  real ( kind = 4 ) f
+  real ( kind = 4 ) f1
+  real ( kind = 4 ) f2
+  real ( kind = 4 ) ffm
+  real ( kind = 4 ) fm
+  real ( kind = 4 ) g
   integer ( kind = 4 ) i
   integer ( kind = 4 ) ignbin
   integer ( kind = 4 ) ix
@@ -1001,35 +1001,35 @@ function ignbin ( n, pp )
   integer ( kind = 4 ) k
   integer ( kind = 4 ) m
   integer ( kind = 4 ) mp
-  real ( kind = 8 ) pp
+  real ( kind = 4 ) pp
   integer ( kind = 4 ) n
-  real ( kind = 8 ) p
-  real ( kind = 8 ) p1
-  real ( kind = 8 ) p2
-  real ( kind = 8 ) p3
-  real ( kind = 8 ) p4
-  real ( kind = 8 ) q
-  real ( kind = 8 ) qn
-  real ( kind = 8 ) r
-  real ( kind = 8 ) r4_uni_01
-  real ( kind = 8 ) t
-  real ( kind = 8 ) u
-  real ( kind = 8 ) v
-  real ( kind = 8 ) w
-  real ( kind = 8 ) w2
-  real ( kind = 8 ) x
-  real ( kind = 8 ) x1
-  real ( kind = 8 ) x2
-  real ( kind = 8 ) xl
-  real ( kind = 8 ) xll
-  real ( kind = 8 ) xlr
-  real ( kind = 8 ) xm
-  real ( kind = 8 ) xnp
-  real ( kind = 8 ) xnpq
-  real ( kind = 8 ) xr
-  real ( kind = 8 ) ynorm
-  real ( kind = 8 ) z
-  real ( kind = 8 ) z2
+  real ( kind = 4 ) p
+  real ( kind = 4 ) p1
+  real ( kind = 4 ) p2
+  real ( kind = 4 ) p3
+  real ( kind = 4 ) p4
+  real ( kind = 4 ) q
+  real ( kind = 4 ) qn
+  real ( kind = 4 ) r
+  real ( kind = 4 ) r4_uni_01
+  real ( kind = 4 ) t
+  real ( kind = 4 ) u
+  real ( kind = 4 ) v
+  real ( kind = 4 ) w
+  real ( kind = 4 ) w2
+  real ( kind = 4 ) x
+  real ( kind = 4 ) x1
+  real ( kind = 4 ) x2
+  real ( kind = 4 ) xl
+  real ( kind = 4 ) xll
+  real ( kind = 4 ) xlr
+  real ( kind = 4 ) xm
+  real ( kind = 4 ) xnp
+  real ( kind = 4 ) xnpq
+  real ( kind = 4 ) xr
+  real ( kind = 4 ) ynorm
+  real ( kind = 4 ) z
+  real ( kind = 4 ) z2
 
   if ( pp <= 0.0E+00 .or. 1.0E+00 <= pp ) then
     write ( *, '(a)' ) ' '
@@ -1040,13 +1040,13 @@ function ignbin ( n, pp )
 
   p = min ( pp, 1.0E+00 - pp )
   q = 1.0E+00 - p
-  xnp = real ( n, kind = 8 ) * p
+  xnp = real ( n, kind = 4 ) * p
 
   if ( xnp < 30.0E+00 ) then
 
     qn = q ** n
     r = p / q
-    g = r * real ( n + 1, kind = 8 )
+    g = r * real ( n + 1, kind = 4 )
 
     do
 
@@ -1070,7 +1070,7 @@ function ignbin ( n, pp )
 
         u = u - f
         ix = ix + 1
-        f = f * ( g / real ( ix, kind = 8 ) - r )
+        f = f * ( g / real ( ix, kind = 4 ) - r )
 
       end do
 
@@ -1160,7 +1160,7 @@ function ignbin ( n, pp )
       else if ( ix < m ) then
         ix1 = ix + 1
         do i = ix + 1, m
-          f = f / ( g / real ( i, kind = 8 ) - r )
+          f = f / ( g / real ( i, kind = 4 ) - r )
         end do
       end if
 
@@ -1176,7 +1176,7 @@ function ignbin ( n, pp )
 
       amaxp = ( k / xnpq ) * ( ( k * ( k / 3.0E+00 &
         + 0.625E+00 ) + 0.1666666666666E+00 ) / xnpq + 0.5E+00 )
-      ynorm = - real ( k * k, kind = 8 ) / ( 2.0E+00 * xnpq )
+      ynorm = - real ( k * k, kind = 4 ) / ( 2.0E+00 * xnpq )
       alv = log ( v )
 
       if ( alv < ynorm - amaxp ) then
@@ -1191,17 +1191,17 @@ function ignbin ( n, pp )
         cycle
       end if
 
-      x1 = real ( ix + 1, kind = 8 )
+      x1 = real ( ix + 1, kind = 4 )
       f1 = fm + 1.0E+00
-      z = real ( n + 1, kind = 8 ) - fm
-      w = real ( n - ix + 1, kind = 8 )
+      z = real ( n + 1, kind = 4 ) - fm
+      w = real ( n - ix + 1, kind = 4 )
       z2 = z * z
       x2 = x1 * x1
       f2 = f1 * f1
       w2 = w * w
 
       t = xm * log ( f1 / x1 ) + ( n - m + 0.5E+00 ) * log ( z / w ) &
-        + real ( ix - m, kind = 8 ) * log ( w * p / ( x1 * q ) ) &
+        + real ( ix - m, kind = 4 ) * log ( w * p / ( x1 * q ) ) &
         + ( 13860.0E+00 - ( 462.0E+00 - ( 132.0E+00 - ( 99.0E+00 - 140.0E+00 &
         / f2 ) / f2 ) / f2 ) / f2 ) / f1 / 166320.0E+00 &
         + ( 13860.0E+00 - ( 462.0E+00 - ( 132.0E+00 - ( 99.0E+00 - 140.0E+00 &
@@ -1262,7 +1262,7 @@ function ignnbn ( n, p )
 !    Input, integer ( kind = 4 ) N, the required number of events.
 !    0 <= N.
 !
-!    Input, real ( kind = 8 ) P, the probability of an event during a 
+!    Input, real ( kind = 4 ) P, the probability of an event during a 
 !    Bernoulli trial.  0.0 < P < 1.0.
 !
 !    Output, integer ( kind = 4 ) IGNNBN, a random deviate from 
@@ -1270,14 +1270,14 @@ function ignnbn ( n, p )
 !
   implicit none
 
-  real ( kind = 8 ) a
-  real ( kind = 8 ) gengam
+  real ( kind = 4 ) a
+  real ( kind = 4 ) gengam
   integer ( kind = 4 ) ignnbn
   integer ( kind = 4 ) ignpoi
   integer ( kind = 4 ) n
-  real ( kind = 8 ) p
-  real ( kind = 8 ) r
-  real ( kind = 8 ) y
+  real ( kind = 4 ) p
+  real ( kind = 4 ) r
+  real ( kind = 4 ) y
 
   if ( n < 0 ) then
     write ( *, '(a)' ) ' '
@@ -1346,7 +1346,7 @@ function ignpoi ( mu )
 !
 !  Parameters:
 !
-!    Input, real ( kind = 8 ) MU, the mean of the Poisson distribution 
+!    Input, real ( kind = 4 ) MU, the mean of the Poisson distribution 
 !    from which a random deviate is to be generated.
 !
 !    Output, integer ( kind = 4 ) IGNPOI, a random deviate from
@@ -1354,54 +1354,54 @@ function ignpoi ( mu )
 !
   implicit none
 
-  real ( kind = 8 ), parameter :: a0 = -0.5E+00
-  real ( kind = 8 ), parameter :: a1 =  0.3333333E+00
-  real ( kind = 8 ), parameter :: a2 = -0.2500068E+00
-  real ( kind = 8 ), parameter :: a3 =  0.2000118E+00
-  real ( kind = 8 ), parameter :: a4 = -0.1661269E+00
-  real ( kind = 8 ), parameter :: a5 =  0.1421878E+00
-  real ( kind = 8 ), parameter :: a6 = -0.1384794E+00
-  real ( kind = 8 ), parameter :: a7 =  0.1250060E+00
-  real ( kind = 8 ) b1
-  real ( kind = 8 ) b2
-  real ( kind = 8 ) c
-  real ( kind = 8 ) c0
-  real ( kind = 8 ) c1
-  real ( kind = 8 ) c2
-  real ( kind = 8 ) c3
-  real ( kind = 8 ) d
-  real ( kind = 8 ) del
-  real ( kind = 8 ) difmuk
-  real ( kind = 8 ) e
-  real ( kind = 8 ) fact(10)
-  real ( kind = 8 ) fk
-  real ( kind = 8 ) fx
-  real ( kind = 8 ) fy
-  real ( kind = 8 ) g
+  real ( kind = 4 ), parameter :: a0 = -0.5E+00
+  real ( kind = 4 ), parameter :: a1 =  0.3333333E+00
+  real ( kind = 4 ), parameter :: a2 = -0.2500068E+00
+  real ( kind = 4 ), parameter :: a3 =  0.2000118E+00
+  real ( kind = 4 ), parameter :: a4 = -0.1661269E+00
+  real ( kind = 4 ), parameter :: a5 =  0.1421878E+00
+  real ( kind = 4 ), parameter :: a6 = -0.1384794E+00
+  real ( kind = 4 ), parameter :: a7 =  0.1250060E+00
+  real ( kind = 4 ) b1
+  real ( kind = 4 ) b2
+  real ( kind = 4 ) c
+  real ( kind = 4 ) c0
+  real ( kind = 4 ) c1
+  real ( kind = 4 ) c2
+  real ( kind = 4 ) c3
+  real ( kind = 4 ) d
+  real ( kind = 4 ) del
+  real ( kind = 4 ) difmuk
+  real ( kind = 4 ) e
+  real ( kind = 4 ) fact(10)
+  real ( kind = 4 ) fk
+  real ( kind = 4 ) fx
+  real ( kind = 4 ) fy
+  real ( kind = 4 ) g
   integer ( kind = 4 ) ignpoi
   integer ( kind = 4 ) j
   integer ( kind = 4 ) k
   integer ( kind = 4 ) kflag
   integer ( kind = 4 ) l
   integer ( kind = 4 ) m
-  real ( kind = 8 ) mu
-  real ( kind = 8 ) muold
-  real ( kind = 8 ) muprev
-  real ( kind = 8 ) omega
-  real ( kind = 8 ) p
-  real ( kind = 8 ) p0
-  real ( kind = 8 ) px
-  real ( kind = 8 ) py
-  real ( kind = 8 ) q
-  real ( kind = 8 ) r4_uni_01
-  real ( kind = 8 ) s
-  real ( kind = 8 ) sexpo
-  real ( kind = 8 ) snorm
-  real ( kind = 8 ) t
-  real ( kind = 8 ) u
-  real ( kind = 8 ) v
-  real ( kind = 8 ) x
-  real ( kind = 8 ) xx
+  real ( kind = 4 ) mu
+  real ( kind = 4 ) muold
+  real ( kind = 4 ) muprev
+  real ( kind = 4 ) omega
+  real ( kind = 4 ) p
+  real ( kind = 4 ) p0
+  real ( kind = 4 ) px
+  real ( kind = 4 ) py
+  real ( kind = 4 ) q
+  real ( kind = 4 ) r4_uni_01
+  real ( kind = 4 ) s
+  real ( kind = 4 ) sexpo
+  real ( kind = 4 ) snorm
+  real ( kind = 4 ) t
+  real ( kind = 4 ) u
+  real ( kind = 4 ) v
+  real ( kind = 4 ) x
+  real ( kind = 4 ) xx
 
   save fact
 
@@ -1870,28 +1870,28 @@ subroutine prcomp ( maxobs, p, mean, xcovar, answer )
 !
 !    Input, integer ( kind = 4 ) P, the number of variables.
 !
-!    Input, real ( kind = 8 ) MEAN(P), the mean for each column.
+!    Input, real ( kind = 4 ) MEAN(P), the mean for each column.
 !
-!    Input, real ( kind = 8 ) XCOVAR(P,P), the variance/covariance matrix.
+!    Input, real ( kind = 4 ) XCOVAR(P,P), the variance/covariance matrix.
 !
-!    Input, real ( kind = 8 ) ANSWER(MAXOBS,P), the observed values.
+!    Input, real ( kind = 4 ) ANSWER(MAXOBS,P), the observed values.
 !
   implicit none
 
   integer ( kind = 4 ) p
   integer ( kind = 4 ) maxobs
 
-  real ( kind = 8 ) answer(maxobs,p)
-  real ( kind = 8 ) dum1
-  real ( kind = 8 ) dum2
+  real ( kind = 4 ) answer(maxobs,p)
+  real ( kind = 4 ) dum1
+  real ( kind = 4 ) dum2
   integer ( kind = 4 ) i
   integer ( kind = 4 ) j
-  real ( kind = 8 ) mean(p)
-  real ( kind = 8 ) r4vec_covar
-  real ( kind = 8 ) rcovar(p,p)
-  real ( kind = 8 ) rmean(p)
-  real ( kind = 8 ) rvar(p)
-  real ( kind = 8 ) xcovar(p,p)
+  real ( kind = 4 ) mean(p)
+  real ( kind = 4 ) r4vec_covar
+  real ( kind = 4 ) rcovar(p,p)
+  real ( kind = 4 ) rmean(p)
+  real ( kind = 4 ) rvar(p)
+  real ( kind = 4 ) xcovar(p,p)
 
   write ( *, '(a)' ) ' '
   write ( *, '(a)' ) 'PRCOMP:'
@@ -1955,18 +1955,18 @@ function r4_exp ( x )
 !
 !  Parameters:
 !
-!    Input, real ( kind = 8 ) X, the argument of the exponential function.
+!    Input, real ( kind = 4 ) X, the argument of the exponential function.
 !
-!    Output, real ( kind = 8 ) R4_EXP, the value of exp ( X ).
+!    Output, real ( kind = 4 ) R4_EXP, the value of exp ( X ).
 !
   implicit none
 
-  real ( kind = 8 ) r4_exp
-  real ( kind = 8 ), parameter :: r4_huge = 1.0E+30
-  real ( kind = 8 ), parameter :: r4_log_max = +69.0776E+00
-  real ( kind = 8 ), parameter :: r4_log_min = -69.0776E+00
-  real ( kind = 8 ) value
-  real ( kind = 8 ) x
+  real ( kind = 4 ) r4_exp
+  real ( kind = 4 ), parameter :: r4_huge = 1.0E+30
+  real ( kind = 4 ), parameter :: r4_log_max = +69.0776E+00
+  real ( kind = 4 ), parameter :: r4_log_min = -69.0776E+00
+  real ( kind = 4 ) value
+  real ( kind = 4 ) x
 
   if ( x <= r4_log_min ) then
     value = 0.0E+00
@@ -2005,16 +2005,16 @@ function r4_exponential_sample ( lambda )
 !
 !  Parameters:
 !
-!    Input, real ( kind = 8 ) LAMBDA, the parameter of the PDF.
+!    Input, real ( kind = 4 ) LAMBDA, the parameter of the PDF.
 !
-!    Output, real ( kind = 8 ) R4_EXPONENTIAL_SAMPLE, a sample of the PDF.
+!    Output, real ( kind = 4 ) R4_EXPONENTIAL_SAMPLE, a sample of the PDF.
 !
   implicit none
 
-  real ( kind = 8 ) lambda
-  real ( kind = 8 ) r
-  real ( kind = 8 ) r4_exponential_sample
-  real ( kind = 8 ) r4_uni_01
+  real ( kind = 4 ) lambda
+  real ( kind = 4 ) r
+  real ( kind = 4 ) r4_exponential_sample
+  real ( kind = 4 ) r4_uni_01
 
   r = r4_uni_01 ( )
 
@@ -2042,33 +2042,33 @@ function r4vec_covar ( n, x, y )
 !
 !  Parameters:
 !
-!    Input, real ( kind = 8 ) X(N), Y(N), the two vectors.
+!    Input, real ( kind = 4 ) X(N), Y(N), the two vectors.
 !
 !    Input, integer ( kind = 4 ) N, the dimension of the two vectors.
 !
-!    Output, real ( kind = 8 ) R4VEC_COVAR, the covariance of the vectors.
+!    Output, real ( kind = 4 ) R4VEC_COVAR, the covariance of the vectors.
 !
   implicit none
 
   integer ( kind = 4 ) n
 
   integer ( kind = 4 ) i
-  real ( kind = 8 ) r4vec_covar
-  real ( kind = 8 ) value
-  real ( kind = 8 ) x(n)
-  real ( kind = 8 ) x_average
-  real ( kind = 8 ) y(n)
-  real ( kind = 8 ) y_average
+  real ( kind = 4 ) r4vec_covar
+  real ( kind = 4 ) value
+  real ( kind = 4 ) x(n)
+  real ( kind = 4 ) x_average
+  real ( kind = 4 ) y(n)
+  real ( kind = 4 ) y_average
 
-  x_average = sum ( x(1:n) ) / real ( n, kind = 8 )
-  y_average = sum ( y(1:n) ) / real ( n, kind = 8 )
+  x_average = sum ( x(1:n) ) / real ( n, kind = 4 )
+  y_average = sum ( y(1:n) ) / real ( n, kind = 4 )
  
   value = 0.0E+00
   do i = 1, n
     value = value + ( x(i) - x_average ) * ( y(i) - y_average )
   end do
 
-  r4vec_covar = value / real ( n - 1, kind = 8 )
+  r4vec_covar = value / real ( n - 1, kind = 4 )
 
   return
 end
@@ -2172,7 +2172,7 @@ function sdot ( n, sx, incx, sy, incy )
 !
 !  Discussion:
 !
-!    This routine uses single precision real ( kind = 8 ) arithmetic.
+!    This routine uses single precision real ( kind = 4 ) arithmetic.
 !
 !    This routine uses unrolled loops for increments equal to one.
 !
@@ -2201,17 +2201,17 @@ function sdot ( n, sx, incx, sy, incy )
 !
 !    Input, integer ( kind = 4 ) N, the number of entries in the vectors.
 !
-!    Input, real ( kind = 8 ) X(*), one of the vectors to be multiplied.
+!    Input, real ( kind = 4 ) X(*), one of the vectors to be multiplied.
 !
 !    Input, integer ( kind = 4 ) INCX, the increment between successive 
 !    entries of X.
 !
-!    Input, real ( kind = 8 ) Y(*), one of the vectors to be multiplied.
+!    Input, real ( kind = 4 ) Y(*), one of the vectors to be multiplied.
 !
 !    Input, integer ( kind = 4 ) INCY, the increment between successive
 !    elements of Y.
 !
-!    Output, real ( kind = 8 ) SDOT, the dot product of X and Y.
+!    Output, real ( kind = 4 ) SDOT, the dot product of X and Y.
 !
   implicit none
 
@@ -2222,10 +2222,10 @@ function sdot ( n, sx, incx, sy, incy )
   integer ( kind = 4 ) iy
   integer ( kind = 4 ) m
   integer ( kind = 4 ) n
-  real ( kind = 8 ) sdot
-  real ( kind = 8 ) stemp
-  real ( kind = 8 ) sx(*)
-  real ( kind = 8 ) sy(*)
+  real ( kind = 4 ) sdot
+  real ( kind = 4 ) stemp
+  real ( kind = 4 ) sx(*)
+  real ( kind = 4 ) sy(*)
 
   sdot = 0.0E+00
 
@@ -2310,21 +2310,21 @@ subroutine setcov ( p, var, corr, covar )
 !
 !    Input, integer ( kind = 4 ) P, the number of variables.
 !
-!    Input, real ( kind = 8 ) VAR(P), the variances.
+!    Input, real ( kind = 4 ) VAR(P), the variances.
 !
-!    Input, real ( kind = 8 ) CORR, the common correlaton.
+!    Input, real ( kind = 4 ) CORR, the common correlaton.
 !
-!    Output, real ( kind = 8 ) COVAR(P,P), the covariance matrix.
+!    Output, real ( kind = 4 ) COVAR(P,P), the covariance matrix.
 !
   implicit none
 
   integer ( kind = 4 ) p
 
-  real ( kind = 8 ) corr
-  real ( kind = 8 ) covar(p,p)
+  real ( kind = 4 ) corr
+  real ( kind = 4 ) covar(p,p)
   integer ( kind = 4 ) i
   integer ( kind = 4 ) j
-  real ( kind = 8 ) var(p)
+  real ( kind = 4 ) var(p)
 
   do i = 1, p
     do  j = 1, p
@@ -2364,29 +2364,29 @@ subroutine setgmn ( meanv, covm, p, parm )
 !
 !  Parameters:
 !
-!    Input, real ( kind = 8 ) MEANV(P), the means of the multivariate 
+!    Input, real ( kind = 4 ) MEANV(P), the means of the multivariate 
 !    normal distribution.
 !
-!    Input/output, real ( kind = 8 ) COVM(P,P).  On input, the covariance
+!    Input/output, real ( kind = 4 ) COVM(P,P).  On input, the covariance
 !    matrix of the multivariate distribution.  On output, the information 
 !    in COVM has been overwritten.
 !
 !    Input, integer ( kind = 4 ) P, the number of dimensions.
 !
-!    Output, real ( kind = 8 ) PARM(P*(P+3)/2+1), parameters needed to generate
+!    Output, real ( kind = 4 ) PARM(P*(P+3)/2+1), parameters needed to generate
 !    multivariate normal deviates.
 !
   implicit none
 
   integer ( kind = 4 ) p
 
-  real ( kind = 8 ) covm(p,p)
+  real ( kind = 4 ) covm(p,p)
   integer ( kind = 4 ) i
   integer ( kind = 4 ) icount
   integer ( kind = 4 ) info
   integer ( kind = 4 ) j
-  real ( kind = 8 ) meanv(p)
-  real ( kind = 8 ) parm(p*(p+3)/2+1)
+  real ( kind = 4 ) meanv(p)
+  real ( kind = 4 ) parm(p*(p+3)/2+1)
 
   if ( p <= 0 ) then
     write ( *, '(a)' ) ' '
@@ -2462,19 +2462,19 @@ function sexpo ( )
 !
 !  Parameters:
 !
-!    Output, real ( kind = 8 ) SEXPO, a random deviate from the standard
+!    Output, real ( kind = 4 ) SEXPO, a random deviate from the standard
 !    exponential distribution.
 !
   implicit none
 
-  real ( kind = 8 ) a
+  real ( kind = 4 ) a
   integer ( kind = 4 ) i
-  real ( kind = 8 ) q(8)
-  real ( kind = 8 ) r4_uni_01
-  real ( kind = 8 ) sexpo
-  real ( kind = 8 ) u
-  real ( kind = 8 ) umin
-  real ( kind = 8 ) ustar
+  real ( kind = 4 ) q(8)
+  real ( kind = 4 ) r4_uni_01
+  real ( kind = 4 ) sexpo
+  real ( kind = 4 ) u
+  real ( kind = 4 ) umin
+  real ( kind = 4 ) ustar
 
   save q
 
@@ -2562,54 +2562,54 @@ function sgamma ( a )
 !
 !  Parameters:
 !
-!    Input, real ( kind = 8 ) A, the parameter of the standard gamma
+!    Input, real ( kind = 4 ) A, the parameter of the standard gamma
 !    distribution.  0.0 < A < 1.0.
 !
-!    Output, real ( kind = 8 ) SGAMMA, a random deviate from the distribution.
+!    Output, real ( kind = 4 ) SGAMMA, a random deviate from the distribution.
 !
   implicit none
 
-  real ( kind = 8 ) a
-  real ( kind = 8 ), parameter :: a1 =  0.3333333E+00
-  real ( kind = 8 ), parameter :: a2 = -0.2500030E+00
-  real ( kind = 8 ), parameter :: a3 =  0.2000062E+00
-  real ( kind = 8 ), parameter :: a4 = -0.1662921E+00
-  real ( kind = 8 ), parameter :: a5 =  0.1423657E+00
-  real ( kind = 8 ), parameter :: a6 = -0.1367177E+00
-  real ( kind = 8 ), parameter :: a7 =  0.1233795E+00
-  real ( kind = 8 ) b
-  real ( kind = 8 ) c
-  real ( kind = 8 ) d
-  real ( kind = 8 ) e
-  real ( kind = 8 ), parameter :: e1 = 1.0E+00
-  real ( kind = 8 ), parameter :: e2 = 0.4999897E+00
-  real ( kind = 8 ), parameter :: e3 = 0.1668290E+00
-  real ( kind = 8 ), parameter :: e4 = 0.0407753E+00
-  real ( kind = 8 ), parameter :: e5 = 0.0102930E+00
-  real ( kind = 8 ) p
-  real ( kind = 8 ) q
-  real ( kind = 8 ) q0
-  real ( kind = 8 ), parameter :: q1 =  0.04166669E+00
-  real ( kind = 8 ), parameter :: q2 =  0.02083148E+00
-  real ( kind = 8 ), parameter :: q3 =  0.00801191E+00
-  real ( kind = 8 ), parameter :: q4 =  0.00144121E+00
-  real ( kind = 8 ), parameter :: q5 = -0.00007388E+00
-  real ( kind = 8 ), parameter :: q6 =  0.00024511E+00
-  real ( kind = 8 ), parameter :: q7 =  0.00024240E+00
-  real ( kind = 8 ) r
-  real ( kind = 8 ) r4_uni_01
-  real ( kind = 8 ) s
-  real ( kind = 8 ) s2
-  real ( kind = 8 ) sexpo
-  real ( kind = 8 ) si
-  real ( kind = 8 ) sgamma
-  real ( kind = 8 ) snorm
-  real ( kind = 8 ), parameter :: sqrt32 = 5.656854E+00
-  real ( kind = 8 ) t
-  real ( kind = 8 ) u
-  real ( kind = 8 ) v
-  real ( kind = 8 ) w
-  real ( kind = 8 ) x
+  real ( kind = 4 ) a
+  real ( kind = 4 ), parameter :: a1 =  0.3333333E+00
+  real ( kind = 4 ), parameter :: a2 = -0.2500030E+00
+  real ( kind = 4 ), parameter :: a3 =  0.2000062E+00
+  real ( kind = 4 ), parameter :: a4 = -0.1662921E+00
+  real ( kind = 4 ), parameter :: a5 =  0.1423657E+00
+  real ( kind = 4 ), parameter :: a6 = -0.1367177E+00
+  real ( kind = 4 ), parameter :: a7 =  0.1233795E+00
+  real ( kind = 4 ) b
+  real ( kind = 4 ) c
+  real ( kind = 4 ) d
+  real ( kind = 4 ) e
+  real ( kind = 4 ), parameter :: e1 = 1.0E+00
+  real ( kind = 4 ), parameter :: e2 = 0.4999897E+00
+  real ( kind = 4 ), parameter :: e3 = 0.1668290E+00
+  real ( kind = 4 ), parameter :: e4 = 0.0407753E+00
+  real ( kind = 4 ), parameter :: e5 = 0.0102930E+00
+  real ( kind = 4 ) p
+  real ( kind = 4 ) q
+  real ( kind = 4 ) q0
+  real ( kind = 4 ), parameter :: q1 =  0.04166669E+00
+  real ( kind = 4 ), parameter :: q2 =  0.02083148E+00
+  real ( kind = 4 ), parameter :: q3 =  0.00801191E+00
+  real ( kind = 4 ), parameter :: q4 =  0.00144121E+00
+  real ( kind = 4 ), parameter :: q5 = -0.00007388E+00
+  real ( kind = 4 ), parameter :: q6 =  0.00024511E+00
+  real ( kind = 4 ), parameter :: q7 =  0.00024240E+00
+  real ( kind = 4 ) r
+  real ( kind = 4 ) r4_uni_01
+  real ( kind = 4 ) s
+  real ( kind = 4 ) s2
+  real ( kind = 4 ) sexpo
+  real ( kind = 4 ) si
+  real ( kind = 4 ) sgamma
+  real ( kind = 4 ) snorm
+  real ( kind = 4 ), parameter :: sqrt32 = 5.656854E+00
+  real ( kind = 4 ) t
+  real ( kind = 4 ) u
+  real ( kind = 4 ) v
+  real ( kind = 4 ) w
+  real ( kind = 4 ) x
 
   if ( 1.0E+00 <= a ) then
 
@@ -2811,24 +2811,24 @@ function snorm ( )
 !
 !  Parameters:
 !
-!    Output, real ( kind = 8 ) SNORM, a random deviate from the distribution.
+!    Output, real ( kind = 4 ) SNORM, a random deviate from the distribution.
 !
   implicit none
 
-  real ( kind = 8 ) a(32)
-  real ( kind = 8 ) aa
-  real ( kind = 8 ) d(31)
-  real ( kind = 8 ) h(31)
+  real ( kind = 4 ) a(32)
+  real ( kind = 4 ) aa
+  real ( kind = 4 ) d(31)
+  real ( kind = 4 ) h(31)
   integer ( kind = 4 ) i
-  real ( kind = 8 ) r4_uni_01
-  real ( kind = 8 ) s
-  real ( kind = 8 ) snorm
-  real ( kind = 8 ) t(31)
-  real ( kind = 8 ) tt
-  real ( kind = 8 ) u
-  real ( kind = 8 ) ustar
-  real ( kind = 8 ) w
-  real ( kind = 8 ) y
+  real ( kind = 4 ) r4_uni_01
+  real ( kind = 4 ) s
+  real ( kind = 4 ) snorm
+  real ( kind = 4 ) t(31)
+  real ( kind = 4 ) tt
+  real ( kind = 4 ) u
+  real ( kind = 4 ) ustar
+  real ( kind = 4 ) w
+  real ( kind = 4 ) y
 
   save a
   save d
@@ -3017,7 +3017,7 @@ subroutine spofa ( a, lda, n, info )
 !
 !  Parameters:
 !
-!    Input/output, real ( kind = 8 ) A(LDA,N).  On input, the symmetric matrix
+!    Input/output, real ( kind = 4 ) A(LDA,N).  On input, the symmetric matrix
 !    to be factored.  Only the diagonal and upper triangle are accessed.  
 !    On output, the strict lower triangle has not been changed.  The diagonal
 !    and upper triangle contain an upper triangular matrix R such that 
@@ -3037,14 +3037,14 @@ subroutine spofa ( a, lda, n, info )
   integer ( kind = 4 ) lda
   integer ( kind = 4 ) n
 
-  real ( kind = 8 ) a(lda,n)
+  real ( kind = 4 ) a(lda,n)
   integer ( kind = 4 ) info
   integer ( kind = 4 ) j
   integer ( kind = 4 ) jm1
   integer ( kind = 4 ) k
-  real ( kind = 8 ) s
-  real ( kind = 8 ) sdot
-  real ( kind = 8 ) t
+  real ( kind = 4 ) s
+  real ( kind = 4 ) sdot
+  real ( kind = 4 ) t
 
   info = 0
 
@@ -3093,27 +3093,27 @@ subroutine stats ( x, n, av, var, xmin, xmax )
 !
 !  Parameters:
 !
-!    Input, real ( kind = 8 ) X(N), the array to be analyzed.
+!    Input, real ( kind = 4 ) X(N), the array to be analyzed.
 !
 !    Input, integer ( kind = 4 ) N, the dimension of the array.
 !
-!    Output, real ( kind = 8 ) AV, the average value.
+!    Output, real ( kind = 4 ) AV, the average value.
 !
-!    Output, real ( kind = 8 ) VAR, the variance.
+!    Output, real ( kind = 4 ) VAR, the variance.
 !
-!    Output, real ( kind = 8 ) XMIN, XMAX, the minimum and maximum entries.
+!    Output, real ( kind = 4 ) XMIN, XMAX, the minimum and maximum entries.
 !
   implicit none
 
   integer ( kind = 4 ) n
 
-  real ( kind = 8 ) av
+  real ( kind = 4 ) av
   integer ( kind = 4 ) i
-  real ( kind = 8 ) total
-  real ( kind = 8 ) var
-  real ( kind = 8 ) x(n)
-  real ( kind = 8 ) xmax
-  real ( kind = 8 ) xmin
+  real ( kind = 4 ) total
+  real ( kind = 4 ) var
+  real ( kind = 4 ) x(n)
+  real ( kind = 4 ) xmax
+  real ( kind = 4 ) xmin
 
   xmin = x(1)
   xmax = x(1)
@@ -3215,24 +3215,24 @@ subroutine trstat ( pdf, parin, av, var )
 !    'poi'  Poisson
 !    'unf'  uniform
 !
-!    Input, real ( kind = 8 ) PARIN(*), the parameters of the distribution.
+!    Input, real ( kind = 4 ) PARIN(*), the parameters of the distribution.
 !
-!    Output, real ( kind = 8 ) AV, the mean of the specified distribution.
+!    Output, real ( kind = 4 ) AV, the mean of the specified distribution.
 !
-!    Output, real ( kind = 8 ) VAR, the variance of the specified distribuion.
+!    Output, real ( kind = 4 ) VAR, the variance of the specified distribuion.
 !
   implicit none
 
-  real ( kind = 8 ) a
-  real ( kind = 8 ) av
-  real ( kind = 8 ) b
+  real ( kind = 4 ) a
+  real ( kind = 4 ) av
+  real ( kind = 4 ) b
   integer ( kind = 4 ) n
-  real ( kind = 8 ) p
-  real ( kind = 8 ) parin(*)
+  real ( kind = 4 ) p
+  real ( kind = 4 ) parin(*)
   character * ( 4 ) pdf
-  real ( kind = 8 ) r
-  real ( kind = 8 ) var
-  real ( kind = 8 ) width
+  real ( kind = 4 ) r
+  real ( kind = 4 ) var
+  real ( kind = 4 ) width
 
   if ( pdf == 'bet' ) then
 
